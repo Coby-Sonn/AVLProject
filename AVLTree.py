@@ -2,7 +2,7 @@
 #id1      - complete info 
 #name1    - complete info 
 #id2      - 318134186
-#name2    - complete info  
+#name2    - Coby Sonnenberg
 
 
 """A class represnting a node in an AVL tree"""
