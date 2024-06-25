@@ -8,6 +8,8 @@
 """A class represnting a node in an AVL tree"""
 
 class AVLNode(object):
+
+
 	"""Constructor, you are allowed to add more fields.
 
 	@type key: int or None
@@ -24,16 +26,13 @@ class AVLNode(object):
 		self.height = -1
 		self.size = 0
 
-
-
 	"""returns whether self is not a virtual node 
 
 	@rtype: bool
 	@returns: False if self is a virtual node, True otherwise.
 	"""
 	def is_real_node(self):
-
-		if self.left == None and self.right == None:
+		if self.key is None and self.value is None:
 			return False
 		return True
 
@@ -60,6 +59,7 @@ A class implementing an AVL tree.
 
 class AVLTree(object):
 
+
 	"""
 	Constructor, you are allowed to add more fields.
 	@type root: AVLNode Object or None
@@ -67,6 +67,14 @@ class AVLTree(object):
 	"""
 	def __init__(self):
 		self.root = AVLNode(None, None)
+
+	""" Function that creates and adds two virtual sons for given node
+	@param node: leaf node with no sons 
+	@return: None
+	"""
+	def add_virtual_sons(self, parent_node):
+		parent_node.left = AVLNode(None,None)
+		parent_node.right = AVLNode(None,None)
 
 	"""searches for a node in the dictionary corresponding to the key
 
@@ -117,9 +125,9 @@ class AVLTree(object):
 	@returns: a sorted list according to key of touples (key, value)
 	"""
 	def avl_to_array_rec(self, node):
-		if node is None:  # might need update - check if not real node instead
+		if (node is None) or (not node.is_real_node()):
 			return []
-		return self.avl_to_array_rec(node.left) + [node.key, node.value] + self.avl_to_array_rec(node.right) # check if required tuple
+		return self.avl_to_array_rec(node.left) + [(node.key, node.value)] + self.avl_to_array_rec(node.right)
 
 	"""returns the number of items in dictionary 
 
@@ -138,7 +146,14 @@ class AVLTree(object):
 	@returns: the rank of node in self
 	"""
 	def rank(self, node):
-		return -1
+		# FUNCTION NOT TESTED BECAUSE SIZE FIELD WAS NOT WORKING YET
+		rank_sum = node.left.size + 1
+		node_to_check = node
+		while node_to_check is not None:
+			if node_to_check == node_to_check.parent.right: # node_to_check is a right son
+				rank_sum = rank_sum + node_to_check.parent.left.size + 1
+			node_to_check = node_to_check.parent
+		return rank_sum
 
 	"""finds the i'th smallest item (according to keys) in the dictionary
 
@@ -149,7 +164,24 @@ class AVLTree(object):
 	@returns: the node of rank i in self
 	"""
 	def select(self, i):
-		return None
+		# NOT TESTED BECAUSE SIZE FIELD DOES NOT WORK
+		return self.select_rec(self.root, i)
+
+	"""Recursively searches for the k'th smallest node in the dictionary
+	@param node: current AVLNode
+	@param k: the index of the node to be searched for
+	@rtype: AVLNode
+	@returns: the node of rank i in self
+	"""
+	def select_rec(self, node, k):
+		# CHECK THIS FUNCTION WHEN SIZE FIELD WORKS
+		r = node.left.size + 1
+		if k == r:
+			return node
+		elif k < r:
+			return self.select_rec(node.left, k)
+		else:
+			return self.select_rec(node.right, k-r)
 
 	"""finds the node with the largest value in a specified range of keys
 
@@ -533,7 +565,7 @@ root.left.left.right.right.right = AVLNode(None,None)
 root.left.left.right.right.left.parent = root.left.left.right.right
 root.left.left.right.right.right.parent = root.left.left.right.right
 """
-"""
+
 C = AVLTree()
 C.root = AVLNode(50, None)
 
@@ -628,12 +660,9 @@ root.right.right.left.left.left.left = AVLNode(None,None)
 root.right.right.left.left.left.right.parent = root.right.right.left.left.left
 root.right.right.left.left.left.left.parent = root.right.right.left.left.left
 
-printree(C.root)
-
 C.right_then_left_rotation(C.root.right)
 printree(C.root)
-
+print (C.avl_to_array())
 #C.left_then_right_rotation(C.root.left)
 
 #printree(C.get_root())
-"""
