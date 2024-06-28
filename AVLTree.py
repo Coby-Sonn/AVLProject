@@ -42,8 +42,8 @@ class AVLNode(object):
 	 """
 	def calculate_balance_factor(self):
 		left_height = self.left.height
-		right_hight = self.right.height
-		return left_height - right_hight
+		right_height = self.right.height
+		return left_height - right_height
 
 	"""returns the height of a node, to be used to check if height of the node
 	has changed (out of scope for this function, to be checked outside.
