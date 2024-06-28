@@ -104,7 +104,6 @@ A class implementing an AVL tree.
 
 class AVLTree(object):
 
-
 	"""
 	Constructor, you are allowed to add more fields.
 	@type root: AVLNode Object or None
@@ -137,6 +136,7 @@ class AVLTree(object):
 	"""
 	def insert(self, key, val):
 
+		num_of_operations = 0
 		node_y, node_x = None, self.root
 
 		while node_x.is_real_node():
@@ -153,6 +153,7 @@ class AVLTree(object):
 			self.root.height = 0
 			self.root.size = 1
 			self.root.add_virtual_sons()
+			return num_of_operations
 
 		else:
 			node_x.key = key
@@ -160,15 +161,16 @@ class AVLTree(object):
 			node_x.height = 0
 			node_x.size = 1
 			node_x.add_virtual_sons()
-			self._insertion_fix(node_x.parent)
-		return
+			num_of_operations = self._insertion_fix(node_x.parent)
+
+		return num_of_operations
 
 	""" Method that climbs to root and fixes  AVL Tree
 	@pre: new node already added to tree, called from insert method only
 	@param node_y: parent AVLNode of inserted node
 	"""
 	def _insertion_fix(self, node_y):
-
+		number_of_operations = 0
 		while node_y is not None:
 			original_y_height = node_y.height
 			node_y.height = node_y.check_height()
@@ -181,10 +183,10 @@ class AVLTree(object):
 				else:
 					node_y = node_y.parent
 			else:  # |bf| = 2
-				self.pick_rotation(node_y)
+				number_of_operations = self.pick_rotation(node_y)
 				self._update_up(node_y.parent.parent)
-				return
-		return
+				return number_of_operations
+		return number_of_operations
 
 	""" Method that climbs to root and fixes size and height of nodes 
 	@pre: validated that no rotations are needed from the param node up
@@ -490,14 +492,18 @@ class AVLTree(object):
 			son_bf = AVL_criminal.left.calculate_balance_factor()
 			if son_bf == -1:
 				self.left_then_right_rotation(AVL_criminal)
+				return 2
 			else:
 				self.right_rotation(AVL_criminal)
+				return 1
 		else:
 			son_bf = AVL_criminal.right.calculate_balance_factor()
 			if son_bf == 1:
 				self.right_then_left_rotation(AVL_criminal)
+				return 2
 			else:
 				self.left_rotation(AVL_criminal)
+				return 1
 
 
 
