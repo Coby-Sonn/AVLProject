@@ -206,6 +206,40 @@ class AVLTree(object):
 	@returns: the number of rebalancing operation due to AVL rebalancing
 	"""
 	def delete(self, node):
+		originalparent = node.parent
+		if self.node.left is None and self.node.right is None: #node is a leaf
+			self.originalparent.add_virtual_sons() #delete the pointer of the parent to node and creat 2 virtual sons
+		elif self.node.left is None ^ self.node.right is None: # node has only one child (I used ^ as xor)
+			if self.node.left is None: #there is a right son
+				node.right.parent = originalparent
+				originalparent.right = node.right #created a bypass
+			else: #there is a left son
+				node.left.parent = originalparent
+				originalparent.left = node.right  # created a bypass
+		else: #node has 2 children (therefore its successor has no left child)
+			nodesucc = self.successor(node)
+
+			if nodesucc.parent.left is nodesucc:
+				nodesuccisleftson = True
+			else:
+				nodesuccisleftson = False
+
+			nodesucc.parent.right = nodesucc.right #remove successor from the tree
+			nodesucc.right.parent = nodesucc.parent
+
+			if nodesuccisleftson: #understanding if the nodesucc gonna be left or right son
+				originalparent.left = nodesucc
+			else:
+				originalparent.right = nodesucc
+
+			nodesucc.parent = originalparent #repalce node by succs
+			nodesucc.right = node.right
+			nodesucc.left = node.left
+			nodesucc.right.parent = nodesucc
+			nodesucc.left.parent = nodesucc
+		return originalparent
+
+	def deletion_fix (self, node): #actually its get the parent, is it clear to write node?
 		return -1
 
 	"""returns an array representing dictionary 
