@@ -45,13 +45,21 @@ class AVLNode(object):
 		right_height = self.right.height
 		return left_height - right_height
 
-	"""returns the height of a node, to be used to check if height of the node
-	has changed (out of scope for this function, to be checked outside.
+	""" Calculates and returns the height of a node
 	@rtype: int
-	@returns: Height of a node
+	@returns: height of a node
+	@post: node's height field not updated within this method
 	"""
 	def check_height(self):
 		return max(self.right.height, self.left.height) + 1
+
+	""" Calculates and returns the size of the subtree of a node
+	@rtype: int
+	@returns: size of the subtree of the node, including the node
+	@post: node's size field not updated within this method
+	"""
+	def check_size(self):
+		return self.left.size + self.right.size + 1
 
 	""" Method that finds the successor of given node in tree
 	@param node: AVLNode to find successor of	
@@ -85,7 +93,9 @@ class AVLNode(object):
 	"""
 	def add_virtual_sons(self):
 		self.left = AVLNode(None, None)
+		self.left.parent = self
 		self.right = AVLNode(None, None)
+		self.right.parent = self
 
 
 """
@@ -123,39 +133,70 @@ class AVLTree(object):
 	@param val: the value of the item
 	@rtype: int
 	@returns: the number of rebalancing operation due to AVL rebalancing
+	@post: inserted a new node but did not update parent heights 
 	"""
 	def insert(self, key, val):
+
 		node_y, node_x = None, self.root
+
 		while node_x.is_real_node():
 			node_y = node_x
 			if key < node_x.key:
 				node_x = node_x.left
 			else:
 				node_x = node_x.right
+
 		#  Arrived at a virtual node
 		if node_y is None:  # tree is empty
 			self.root.key = key
 			self.root.value = val
+			self.root.height = 0
+			self.root.size = 1
 			self.root.add_virtual_sons()
 
 		else:
 			node_x.key = key
 			node_x.value = val
+			node_x.height = 0
+			node_x.size = 1
 			node_x.add_virtual_sons()
 			self._insertion_fix(node_x.parent)
+		return
 
 	""" Method that climbs to root and fixes  AVL Tree
 	@pre: new node already added to tree, called from insert method only
 	@param node_y: parent AVLNode of inserted node
 	"""
-	def _insertion_fix(self,node_y):
+	def _insertion_fix(self, node_y):
 
 		while node_y is not None:
-			BF = node_y.calculate_balance_factor()
-			new_height = None
+			original_y_height = node_y.height
+			node_y.height = node_y.check_height()
+			node_y.size += 1
+			bf = node_y.calculate_balance_factor()
+			if abs(bf) < 2:
+				if original_y_height == node_y.height:
+					self._update_up(node_y.parent)  # update sizes and heights up
+					return
+				else:
+					node_y = node_y.parent
+			else:  # |bf| = 2
+				self.pick_rotation(node_y)
+				self._update_up(node_y.parent.parent)
+				return
+		return
 
-		return None
-
+	""" Method that climbs to root and fixes size and height of nodes 
+	@pre: validated that no rotations are needed from the param node up
+	@param node: AVLNode from which to update size and heights of nodes
+	@post: updated nodes' size and height fields
+	"""
+	def _update_up(self, node):
+		while node is not None:
+			node.height = node.check_height()
+			node.size = node.check_size()
+			node = node.parent
+		return
 
 	"""deletes node from the dictionary
 
@@ -287,7 +328,7 @@ class AVLTree(object):
 
 		# TEST THIS UPDATE
 		A.size = B.size
-		B.size = B.left.size + B.right.size + 1
+		B.size = B.check_size()
 
 		B.height = B.check_height()
 		A.height = A.check_height()
@@ -317,7 +358,7 @@ class AVLTree(object):
 
 		# TEST THIS UPDATE
 		A.size = B.size
-		B.size = B.left.size + B.right.size + 1
+		B.size = B.check_size()
 
 		B.height = B.check_height()
 		A.height = A.check_height()
@@ -356,9 +397,9 @@ class AVLTree(object):
 		CR.parent = B
 
 		# TEST THIS UPDATE
-		A.size = A.left.size + A.right.size + 1
-		B.size = B.left.size + B.right.size + 1
-		C.size = C.left.size + C.right.size + 1
+		A.size = A.check_size()
+		B.size = B.check_size()
+		C.size = C.check_size()
 
 		A.height = A.check_height()
 		B.height = B.check_height()
@@ -399,9 +440,9 @@ class AVLTree(object):
 		CR.parent = B
 
 		# TEST THIS UPDATE
-		A.size = A.left.size + A.right.size + 1
-		B.size = B.left.size + B.right.size + 1
-		C.size = C.left.size + C.right.size + 1
+		A.size = A.check_size()
+		B.size = B.check_size()
+		C.size = C.check_size()
 
 		A.height = A.check_height()
 		B.height = B.check_height()
@@ -416,7 +457,8 @@ class AVLTree(object):
 	def pick_rotation(self, AVL_criminal):
 
 		criminal_bf = AVL_criminal.calculate_balance_factor()
-		if criminal_bf == 2:  # Check left son
+
+		if criminal_bf == 2:
 			son_bf = AVL_criminal.left.calculate_balance_factor()
 			if son_bf == -1:
 				self.left_then_right_rotation(AVL_criminal)
@@ -509,276 +551,24 @@ def rightspace(row):
 
 #########
 
-
-lst = [i for i in range(5, 15)]
-root = AVLNode(20, None)
 A = AVLTree()
-A.root = root
-for i in range(len(lst)):
-	if i % 2 == 0:
-		root.left = AVLNode(lst[i], None)
-		root = root.left
-	else:
-		root.right = AVLNode(lst[i], None)
-#printree(A)
+key = input("Enter a new key: ")
+while key != "-1":
+	A.insert(int(key),key)
+	printree(A.root)
+	key = input("Enter a new key: ")
 
+
+print(A.root.size)
+print(A.root.height)
 
 """
 B = AVLTree()
-B.insertORIG(8, None)
-#printree(B.root)
-B.insertORIG(7, None)
-#printree(B.root)
-B.insertORIG(6, None)
-printree(B.get_root())
-print(B.root.left.height)
+keys = [15,7,22,4,10,20,24,2,6,8,11,18,1,5,12]
+for key in keys:
+	B.insert(key,str(key))
 
-B.right_rotation(B.root.left.left)
 printree(B.root)
-"""
-"""
-C = AVLTree()
-C.root = AVLNode(3,None)
-C.root.left = AVLNode(2,None)
-C.root.right = AVLNode(None,None)
-C.root.left.parent = C.root
-C.root.right.parent = C.root
-leftnode = C.root.left
-leftnode.left = AVLNode(1,None)
-leftnode.right = AVLNode(None,None)
-leftnode.left.parent = leftnode
-leftnode.right.parent = leftnode
-leftleftnode = leftnode.left
-leftleftnode.left = AVLNode(0,None)
-leftleftnode.right = AVLNode(None,None)
-lefty = leftleftnode.left
-lefty.left = AVLNode(None,None)
-lefty.right = AVLNode(None,None)
-lefty.left.parent = lefty
-lefty.right.parent = lefty
-printree(C.get_root())
-"""
-"""
-C = AVLTree()
-C.root = AVLNode(3, None)
-C.root.right = AVLNode(4, None)
-C.root.left = AVLNode(None, None)
-C.root.right.parent = C.root
-C.root.left.parent = C.root
-rightnode = C.root.right
-rightnode.right = AVLNode(5, None)
-rightnode.left = AVLNode(None, None)
-rightnode.right.parent = rightnode
-rightnode.left.parent = rightnode
-rightrightnode = rightnode.right
-rightrightnode.right = AVLNode(6, None)
-rightrightnode.left = AVLNode(None, None)
-righty = rightrightnode.right
-righty.right = AVLNode(None, None)
-righty.left = AVLNode(None, None)
-righty.right.parent = righty
-righty.left.parent = righty
-printree(C.get_root())
-
-
-C.left_rotation(C.root.right)
-
-printree(C.get_root())
-"""
-"""
-C = AVLTree()
-C.root = AVLNode(15, None)
-
-# Level 1
-C.root.left = AVLNode(10, None)
-C.root.right = AVLNode(22, None)
-C.root.left.parent = C.root
-C.root.right.parent = C.root
-
-# Level 2
-leftnode = C.root.left
-rightnode = C.root.right
-
-leftnode.left = AVLNode(4, None)
-leftnode.right = AVLNode(11, None)
-leftnode.left.parent = leftnode
-leftnode.right.parent = leftnode
-
-rightnode.left = AVLNode(20, None)
-rightnode.right = AVLNode(24, None)
-rightnode.left.parent = rightnode
-rightnode.right.parent = rightnode
-
-# Level 3
-leftleftnode = leftnode.left
-leftrightnode = leftnode.right
-
-leftleftnode.left = AVLNode(2, None)
-leftleftnode.right = AVLNode(7, None)
-leftleftnode.left.parent = leftleftnode
-leftleftnode.right.parent = leftleftnode
-
-leftrightnode.right = AVLNode(12, None)
-leftrightnode.right.parent = leftrightnode
-
-rightleftnode = rightnode.left
-
-rightleftnode.left = AVLNode(18, None)
-rightleftnode.left.parent = rightleftnode
-
-# Level 4
-leftleftleftnode = leftleftnode.left
-leftleftrightnode = leftleftnode.right
-
-leftleftleftnode.left = AVLNode(1, None)
-leftleftleftnode.right = AVLNode(None, None)
-leftleftleftnode.left.parent = leftleftleftnode
-leftleftleftnode.right.parent = leftleftleftnode
-
-leftleftrightnode.left = AVLNode(6, None)
-leftleftrightnode.right = AVLNode(8, None)
-leftleftrightnode.left.parent = leftleftrightnode
-leftleftrightnode.right.parent = leftleftrightnode
-
-root = C.root
-
-root.right.right.right = AVLNode(None, None)
-root.right.right.right.parent = root.right.right
-root.right.right.left = AVLNode(None, None)
-root.right.right.left.parent = root.right.right
-
-root.right.left.right = AVLNode(None, None)
-root.right.left.right.parent = root.right.left
-root.right.left.left.left = AVLNode(None, None)
-root.right.left.left.right = AVLNode(None, None)
-root.right.left.left.left.parent = root.right.left.left
-root.right.left.left.right.parent = root.right.left.left
-
-root.left.left.left.left.left = AVLNode(None,None)
-root.left.left.left.left.left.parent = root.left.left.left.left
-
-root.left.left.left.left.right = AVLNode(None,None)
-root.left.left.left.left.right.parent = root.left.left.left.left
-
-root.left.left.left.right.left = AVLNode(None,None)
-root.left.left.left.right.right = AVLNode(None,None)
-root.left.left.left.right.left.parent = root.left.left.left.right
-root.left.left.left.right.right.parent = root.left.left.left.right
-
-root.left.left.right.left.left = AVLNode(5,None)
-root.left.left.right.left.right = AVLNode(None,None)
-root.left.left.right.left.left.parent = root.left.left.right.left
-root.left.left.right.left.right.parent = root.left.left.right.left
-
-root.left.left.right.left.left.left = AVLNode(None,None)
-root.left.left.right.left.left.right = AVLNode(None,None)
-root.left.left.right.left.left.left.parent = root.left.left.right.left.left
-root.left.left.right.left.left.right.parent = root.left.left.right.left.left
-
-root.left.left.right.right.left = AVLNode(None,None)
-root.left.left.right.right.right = AVLNode(None,None)
-root.left.left.right.right.left.parent = root.left.left.right.right
-root.left.left.right.right.right.parent = root.left.left.right.right
-"""
-"""
-C = AVLTree()
-C.root = AVLNode(50, None)
-
-# Level 1
-C.root.right = AVLNode(80, None)
-C.root.left = AVLNode(20, None)
-C.root.right.parent = C.root
-C.root.left.parent = C.root
-
-# Level 2
-rightnode = C.root.right
-leftnode = C.root.left
-
-rightnode.right = AVLNode(100, None)
-rightnode.left = AVLNode(70, None)
-rightnode.right.parent = rightnode
-rightnode.left.parent = rightnode
-
-leftnode.right = AVLNode(30, None)
-leftnode.left = AVLNode(10, None)
-leftnode.right.parent = leftnode
-leftnode.left.parent = leftnode
-
-# Level 3
-rightrightnode = rightnode.right
-rightleftnode = rightnode.left
-
-rightrightnode.right = AVLNode(110, None)
-rightrightnode.left = AVLNode(98, None)
-rightrightnode.right.parent = rightrightnode
-rightrightnode.left.parent = rightrightnode
-
-rightleftnode.left = AVLNode(68, None)
-rightleftnode.left.parent = rightleftnode
-
-leftrightnode = leftnode.right
-
-leftrightnode.right = AVLNode(40, None)
-leftrightnode.right.parent = leftrightnode
-
-# Level 4
-rightrightrightnode = rightrightnode.right
-rightrightleftnode = rightrightnode.left
-
-rightrightrightnode.right = AVLNode(1, None)
-rightrightrightnode.left = AVLNode(None, None)
-rightrightrightnode.right.parent = rightrightrightnode
-rightrightrightnode.left.parent = rightrightrightnode
-
-rightrightleftnode.right = AVLNode(99, None)
-rightrightleftnode.left = AVLNode(90, None)
-rightrightleftnode.right.parent = rightrightleftnode
-rightrightleftnode.left.parent = rightrightleftnode
-
-root = C.root
-
-root.left.left.left = AVLNode(None, None)
-root.left.left.left.parent = root.left.left
-root.left.left.right = AVLNode(None, None)
-root.left.left.right.parent = root.left.left
-
-root.left.right.left = AVLNode(None, None)
-root.left.right.left.parent = root.left.right
-root.left.right.right.right = AVLNode(None, None)
-root.left.right.right.left = AVLNode(None, None)
-root.left.right.right.right.parent = root.left.right.right
-root.left.right.right.left.parent = root.left.right.right
-
-root.right.right.right.right = AVLNode(None,None)
-root.right.right.right.right.parent = root.right.right.right
-
-root.right.right.right.left = AVLNode(None,None)
-root.right.right.right.left.parent = root.right.right.right
-
-root.right.right.left.right.right = AVLNode(None,None)
-root.right.right.left.right.left = AVLNode(None,None)
-root.right.right.left.right.right.parent = root.right.right.left.right
-root.right.right.left.right.left.parent = root.right.right.left.right
-
-root.right.right.left.left.right = AVLNode(95,None)
-root.right.right.left.left.left = AVLNode(87,None)
-root.right.right.left.left.right.parent = root.right.right.left.left
-root.right.right.left.left.left.parent = root.right.right.left.left
-
-root.right.right.left.left.right.right = AVLNode(None,None)
-root.right.right.left.left.right.left = AVLNode(None,None)
-root.right.right.left.left.right.right.parent = root.right.right.left.left.right
-root.right.right.left.left.right.left.parent = root.right.right.left.left.right
-
-root.right.right.left.left.left.right = AVLNode(None,None)
-root.right.right.left.left.left.left = AVLNode(None,None)
-root.right.right.left.left.left.right.parent = root.right.right.left.left.left
-root.right.right.left.left.left.left.parent = root.right.right.left.left.left
-
-C.right_then_left_rotation(C.root.right)
-printree(C.root)
-print (C.avl_to_array())
-#C.left_then_right_rotation(C.root.left)
-
-#printree(C.get_root())
+print(B.size())
+print(B.root.height)
 """
