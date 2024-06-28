@@ -69,14 +69,17 @@ class AVLNode(object):
 	@rtype: AVLNode
 	"""
 	def successor(self):
-		if self.right is not None:
+
+		if self.right.is_real_node():
 			return self.find_min_in_subtree(self.right)
 		node_y = self.parent
 		node_x = self
 		while node_y is not None and node_x is node_y.right:
 			node_x = node_y
 			node_y = node_x.parent
+
 		return node_y
+
 
 	""" Method that finds the minimum value in the subtree of the node
 	@param node: AVLNode to be searched
@@ -85,7 +88,7 @@ class AVLNode(object):
 	"""
 	@staticmethod
 	def find_min_in_subtree(node):
-		while node.left is not None:
+		while node.left.is_real_node():
 			node = node.left
 		return node
 
@@ -222,55 +225,66 @@ class AVLTree(object):
 		cnt=0
 		if (not(node.left.is_real_node())) and (not(node.right.is_real_node())): #node is a leaf
 			if originalparent is not None:
-				originalparent.add_virtual_sons() #delete the pointer of the parent to node and creat 2 virtual sons
+				if originalparent.left is node:
+					originalparent.left = AVLNode(None,None)
+					originalparent.left.parent = originalparent
+				if originalparent.right is node:
+					originalparent.right = AVLNode(None,None)
+					originalparent.right.parent = originalparent
 			else:
-				self.root = None #the tree is now empty
+				self.root = None  # the tree is now empty
+			cnt = self.deletion_fix(originalparent)
+			return cnt
 
 
 		elif (not(node.left.is_real_node())) ^ (not(node.right.is_real_node())): # node has only one child (I used ^ as xor)
 			if originalparent is not None:
-				if not node.left.is_real_node(): #there is a right son
+				if not node.left.is_real_node():  # there is a right son
 					node.right.parent = originalparent
-					originalparent.right = node.right #created a bypass
-				else: #there is a left son
+					originalparent.right = node.right  # created bypass
+				else:  # there is a left son
 					node.left.parent = originalparent
-					originalparent.left = node.left  # created a bypass
-			else: #the node was the root with only one child
+					originalparent.left = node.left  # created bypass
+			else:  # the node was the root with only one child
 				if node.right.is_real_node():
 					self.root = node.right
 				else:
 					self.root = node.left
+			cnt = self.deletion_fix(originalparent)
+			return cnt
+		else:  # node has 2 children (therefore its successor has no left child)
 
-		else: #node has 2 children (therefore its successor has no left child)
 			nodesucc = node.successor()
-
+			original_node_successor = nodesucc.parent
 			if nodesucc.parent.left is nodesucc:
 				nodesuccisleftson = True
 			else:
 				nodesuccisleftson = False
+
 			if nodesucc.right is not None:
-				nodesucc.parent.right = nodesucc.right #remove successor from the tree
+				nodesucc.parent.left = nodesucc.left  # remove successor from the tree
 				nodesucc.right.parent = nodesucc.parent
 
-			if nodesuccisleftson: #understanding if the nodesucc gonna be left or right son
+			if nodesuccisleftson:  # understanding if nodesucc will be left or right son
 				if originalparent is not None:
 					originalparent.left = nodesucc
 				else:
 					self.root = nodesucc
+					self.root.parent = None
 			else:
 				if originalparent is not None:
 					originalparent.right = nodesucc
 				else:
 					self.root = nodesucc
+					self.root.parent = None
 
-			nodesucc.parent = originalparent #repalce node by succs
+			nodesucc.parent = originalparent  # replace node by successor
 			nodesucc.right = node.right
 			nodesucc.left = node.left
 			nodesucc.right.parent = nodesucc
 			nodesucc.left.parent = nodesucc
-		print (originalparent.key)
-		cnt = self.deletion_fix(originalparent)
-		return cnt
+			cnt = self.deletion_fix(original_node_successor)
+			return cnt
 
 	def deletion_fix (self, node):
 		cnt=0
@@ -280,15 +294,15 @@ class AVLTree(object):
 			original_parent_height = parent.height
 			parent.height = parent.check_height()
 			parent.size = parent.check_size()
-			BF = parent.calculate_balance_factor() #compute BF of parent
-			if abs(BF) < 2 and original_parent_height == parent.height : #if abs(BFparent)<2 and height hasn't change, there is no rotation
-				return cnt #terminate - maybe better to return 0? because in this case there is no rotation
-			elif abs(BF) < 2 and original_parent_height != parent.height : #high have been changed but BF is ok
-				parent = parent.parent #go back to the while with the parent of the parent, until you find |BF|=2
+			BF = parent.calculate_balance_factor()  # compute BF of parent
+			if abs(BF) < 2 and original_parent_height == parent.height:  # No rotation required
+				return cnt  # terminate - maybe better to return 0? because in this case there is no rotation
+			elif abs(BF) < 2 and original_parent_height != parent.height:  # high have been changed but BF is ok
+				parent = parent.parent  # go back to the while with the parent of the parent, until you find |BF|=2
 			else: # |BF| = 2
-				print ("we are in", parent.key)
+				new_parent = parent.parent
 				cnt += self.pick_rotation(parent)
-				parent = parent.parent
+				parent = new_parent
 
 		return cnt
 
@@ -651,14 +665,16 @@ print(A.root.height)
 """
 
 B = AVLTree()
-keys = [15,7,22,4,10,20,24,2,6,8,11,18,1,5,12]
-for key in keys:
-	B.insert(key,str(key))
+#keys = [15,8,22,4,11,20,24,2,9,12,18,13]
+#for key in keys:
+#	B.insert(key,str(key))
+B.insert(1,None)
+
 
 
 printree(B.root)
-print(B.size())
-print(B.root.height)
-B.delete (B.search(24))
+print(B.delete(B.search(1)))
 printree(B.root)
-print (B.search(22).size)
+
+
+
