@@ -50,7 +50,7 @@ class AVLNode(object):
 	@rtype: int
 	@returns: Height of a node
 	"""
-	def update_height(self):
+	def check_height(self):
 		return max(self.right.height, self.left.height) + 1
 
 	""" Method that finds the successor of given node in tree
@@ -125,7 +125,37 @@ class AVLTree(object):
 	@returns: the number of rebalancing operation due to AVL rebalancing
 	"""
 	def insert(self, key, val):
-		return -1
+		node_y, node_x = None, self.root
+		while node_x.is_real_node():
+			node_y = node_x
+			if key < node_x.key:
+				node_x = node_x.left
+			else:
+				node_x = node_x.right
+		#  Arrived at a virtual node
+		if node_y is None:  # tree is empty
+			self.root.key = key
+			self.root.value = val
+			self.root.add_virtual_sons()
+
+		else:
+			node_x.key = key
+			node_x.value = val
+			node_x.add_virtual_sons()
+			self._insertion_fix(node_x.parent)
+
+	""" Method that climbs to root and fixes  AVL Tree
+	@pre: new node already added to tree, called from insert method only
+	@param node_y: parent AVLNode of inserted node
+	"""
+	def _insertion_fix(self,node_y):
+
+		while node_y is not None:
+			BF = node_y.calculate_balance_factor()
+			new_height = None
+
+		return None
+
 
 	"""deletes node from the dictionary
 
@@ -259,8 +289,8 @@ class AVLTree(object):
 		A.size = B.size
 		B.size = B.left.size + B.right.size + 1
 
-		B.height = B.update_height()
-		A.height = A.update_height()
+		B.height = B.check_height()
+		A.height = A.check_height()
 
 		return None
 
@@ -289,8 +319,8 @@ class AVLTree(object):
 		A.size = B.size
 		B.size = B.left.size + B.right.size + 1
 
-		B.height = B.update_height()
-		A.height = A.update_height()
+		B.height = B.check_height()
+		A.height = A.check_height()
 		return None
 
 	""" Function receives a node in the tree where BF has changed to |2| (AVL Criminal) and rotates LR
@@ -330,9 +360,9 @@ class AVLTree(object):
 		B.size = B.left.size + B.right.size + 1
 		C.size = C.left.size + C.right.size + 1
 
-		A.height = A.update_height()
-		B.height = B.update_height()
-		C.height = C.update_height()
+		A.height = A.check_height()
+		B.height = B.check_height()
+		C.height = C.check_height()
 
 		return None
 
@@ -373,9 +403,9 @@ class AVLTree(object):
 		B.size = B.left.size + B.right.size + 1
 		C.size = C.left.size + C.right.size + 1
 
-		A.height = A.update_height()
-		B.height = B.update_height()
-		C.height = C.update_height()
+		A.height = A.check_height()
+		B.height = B.check_height()
+		C.height = C.check_height()
 		return None
 
 	""" Method that receives a criminal AVLNode and conducts the correct rotation
