@@ -41,6 +41,8 @@ class AVLNode(object):
 	 @returns: Balance factor of a node
 	 """
 	def calculate_balance_factor(self):
+		if not self.is_real_node():
+			return 0
 		left_height = self.left.height
 		right_height = self.right.height
 		return left_height - right_height
@@ -121,6 +123,14 @@ class AVLTree(object):
 	@returns: node corresponding to key
 	"""
 	def search(self, key):
+		node = self.root
+		while node.key != key and node.is_real_node() :
+			if node.key > key:
+				node = node.left
+			elif node.key < key:
+				node = node.right
+		if node.key == key:
+			return node
 		return None
 
 	"""inserts a new node into the dictionary with corresponding key and value
@@ -209,40 +219,78 @@ class AVLTree(object):
 	"""
 	def delete(self, node):
 		originalparent = node.parent
-		if self.node.left is None and self.node.right is None: #node is a leaf
-			self.originalparent.add_virtual_sons() #delete the pointer of the parent to node and creat 2 virtual sons
-		elif self.node.left is None ^ self.node.right is None: # node has only one child (I used ^ as xor)
-			if self.node.left is None: #there is a right son
-				node.right.parent = originalparent
-				originalparent.right = node.right #created a bypass
-			else: #there is a left son
-				node.left.parent = originalparent
-				originalparent.left = node.right  # created a bypass
+		cnt=0
+		if (not(node.left.is_real_node())) and (not(node.right.is_real_node())): #node is a leaf
+			if originalparent is not None:
+				originalparent.add_virtual_sons() #delete the pointer of the parent to node and creat 2 virtual sons
+			else:
+				self.root = None #the tree is now empty
+
+
+		elif (not(node.left.is_real_node())) ^ (not(node.right.is_real_node())): # node has only one child (I used ^ as xor)
+			if originalparent is not None:
+				if not node.left.is_real_node(): #there is a right son
+					node.right.parent = originalparent
+					originalparent.right = node.right #created a bypass
+				else: #there is a left son
+					node.left.parent = originalparent
+					originalparent.left = node.left  # created a bypass
+			else: #the node was the root with only one child
+				if node.right.is_real_node():
+					self.root = node.right
+				else:
+					self.root = node.left
+
 		else: #node has 2 children (therefore its successor has no left child)
-			nodesucc = self.successor(node)
+			nodesucc = node.successor()
 
 			if nodesucc.parent.left is nodesucc:
 				nodesuccisleftson = True
 			else:
 				nodesuccisleftson = False
-
-			nodesucc.parent.right = nodesucc.right #remove successor from the tree
-			nodesucc.right.parent = nodesucc.parent
+			if nodesucc.right is not None:
+				nodesucc.parent.right = nodesucc.right #remove successor from the tree
+				nodesucc.right.parent = nodesucc.parent
 
 			if nodesuccisleftson: #understanding if the nodesucc gonna be left or right son
-				originalparent.left = nodesucc
+				if originalparent is not None:
+					originalparent.left = nodesucc
+				else:
+					self.root = nodesucc
 			else:
-				originalparent.right = nodesucc
+				if originalparent is not None:
+					originalparent.right = nodesucc
+				else:
+					self.root = nodesucc
 
 			nodesucc.parent = originalparent #repalce node by succs
 			nodesucc.right = node.right
 			nodesucc.left = node.left
 			nodesucc.right.parent = nodesucc
 			nodesucc.left.parent = nodesucc
-		return originalparent
+		print (originalparent.key)
+		cnt = self.deletion_fix(originalparent)
+		return cnt
 
-	def deletion_fix (self, node): #actually its get the parent, is it clear to write node?
-		return -1
+	def deletion_fix (self, node):
+		cnt=0
+		parent = node
+
+		while parent is not None:
+			original_parent_height = parent.height
+			parent.height = parent.check_height()
+			parent.size = parent.check_size()
+			BF = parent.calculate_balance_factor() #compute BF of parent
+			if abs(BF) < 2 and original_parent_height == parent.height : #if abs(BFparent)<2 and height hasn't change, there is no rotation
+				return cnt #terminate - maybe better to return 0? because in this case there is no rotation
+			elif abs(BF) < 2 and original_parent_height != parent.height : #high have been changed but BF is ok
+				parent = parent.parent #go back to the while with the parent of the parent, until you find |BF|=2
+			else: # |BF| = 2
+				print ("we are in", parent.key)
+				cnt += self.pick_rotation(parent)
+				parent = parent.parent
+
+		return cnt
 
 	"""returns an array representing dictionary 
 	An envelope function using the function avl_to_array_rec
@@ -485,23 +533,28 @@ class AVLTree(object):
 	@return: None
 	"""
 	def pick_rotation(self, AVL_criminal):
+		print("rotating", AVL_criminal.key)
 
 		criminal_bf = AVL_criminal.calculate_balance_factor()
 
 		if criminal_bf == 2:
 			son_bf = AVL_criminal.left.calculate_balance_factor()
 			if son_bf == -1:
+				print("lr")
 				self.left_then_right_rotation(AVL_criminal)
 				return 2
 			else:
+				print("r")
 				self.right_rotation(AVL_criminal)
 				return 1
 		else:
 			son_bf = AVL_criminal.right.calculate_balance_factor()
 			if son_bf == 1:
+				print("rl")
 				self.right_then_left_rotation(AVL_criminal)
 				return 2
 			else:
+				print("l")
 				self.left_rotation(AVL_criminal)
 				return 1
 
@@ -602,6 +655,10 @@ keys = [15,7,22,4,10,20,24,2,6,8,11,18,1,5,12]
 for key in keys:
 	B.insert(key,str(key))
 
+
 printree(B.root)
 print(B.size())
 print(B.root.height)
+B.delete (B.search(24))
+printree(B.root)
+print (B.search(22).size)
