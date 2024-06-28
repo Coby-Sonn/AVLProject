@@ -79,8 +79,13 @@ class AVLNode(object):
 			node = node.left
 		return node
 
-
-
+	""" Function that creates and adds two virtual sons for given node
+	@param self: leaf node with no sons 
+	@return: None
+	"""
+	def add_virtual_sons(self):
+		self.left = AVLNode(None, None)
+		self.right = AVLNode(None, None)
 
 
 """
@@ -98,13 +103,6 @@ class AVLTree(object):
 	def __init__(self):
 		self.root = AVLNode(None, None)
 
-	""" Function that creates and adds two virtual sons for given node
-	@param node: leaf node with no sons 
-	@return: None
-	"""
-	def add_virtual_sons(self, parent_node):
-		parent_node.left = AVLNode(None, None)
-		parent_node.right = AVLNode(None, None)
 
 	"""searches for a node in the dictionary corresponding to the key
 
@@ -400,7 +398,6 @@ class AVLTree(object):
 				self.right_then_left_rotation(AVL_criminal)
 			else:
 				self.left_rotation(AVL_criminal)
-
 
 
 
