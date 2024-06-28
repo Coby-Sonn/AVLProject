@@ -80,6 +80,9 @@ class AVLNode(object):
 		return node
 
 
+
+
+
 """
 A class implementing an AVL tree.
 """
@@ -292,7 +295,7 @@ class AVLTree(object):
 		A.height = A.update_height()
 		return None
 
-	"""Function receives a node in the tree where BF has changed to 2 (AVL Criminal) and rotates LR
+	""" Function receives a node in the tree where BF has changed to |2| (AVL Criminal) and rotates LR
 	@type node: AVLNode
 	@param node: AVLNode where BF=2
 	"""
@@ -376,6 +379,30 @@ class AVLTree(object):
 		B.height = B.update_height()
 		C.height = C.update_height()
 		return None
+
+	""" Method that receives a criminal AVLNode and conducts the correct rotation
+	@pre: AVL_criminal is indeed a criminal (BF checked and BF = |2|)
+	@type AVL_criminal: AVLNode
+	@return: None
+	"""
+	def pick_rotation(self, AVL_criminal):
+
+		criminal_bf = AVL_criminal.calculate_balance_factor()
+		if criminal_bf == 2:  # Check left son
+			son_bf = AVL_criminal.left.calculate_balance_factor()
+			if son_bf == -1:
+				self.left_then_right_rotation(AVL_criminal)
+			else:
+				self.right_rotation(AVL_criminal)
+		else:
+			son_bf = AVL_criminal.right.calculate_balance_factor()
+			if son_bf == 1:
+				self.right_then_left_rotation(AVL_criminal)
+			else:
+				self.left_rotation(AVL_criminal)
+
+
+
 
 
 ## printing trees (call printree(AVLTree))
