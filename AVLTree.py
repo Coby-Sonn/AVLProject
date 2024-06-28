@@ -5,7 +5,7 @@
 #name2    - Coby Sonnenberg
 
 
-"""A class represnting a node in an AVL tree"""
+"""A class representing a node in an AVL tree"""
 
 class AVLNode(object):
 
@@ -73,8 +73,8 @@ class AVLTree(object):
 	@return: None
 	"""
 	def add_virtual_sons(self, parent_node):
-		parent_node.left = AVLNode(None,None)
-		parent_node.right = AVLNode(None,None)
+		parent_node.left = AVLNode(None, None)
+		parent_node.right = AVLNode(None, None)
 
 	"""searches for a node in the dictionary corresponding to the key
 
@@ -130,12 +130,12 @@ class AVLTree(object):
 		return self.avl_to_array_rec(node.left) + [(node.key, node.value)] + self.avl_to_array_rec(node.right)
 
 	"""returns the number of items in dictionary 
-
 	@rtype: int
 	@returns: the number of items in dictionary 
+	@post: returned integer is full size of the tree including the root
 	"""
 	def size(self):
-		return -1
+		return self.root.size
 
 	"""compute the rank of node in the dictionary
 
@@ -226,6 +226,14 @@ class AVLTree(object):
 			self.root = A
 		A.right = B
 		B.parent = A
+
+		# TEST THIS UPDATE
+		A.size = B.size
+		B.size = B.left.size + B.right.size + 1
+
+		B.height = B.update_height()
+		A.height = A.update_height()
+
 		return None
 
 	"""Function receives a node in the tree where BF has changed to 2 (AVL Criminal) and rotates LL
@@ -248,6 +256,13 @@ class AVLTree(object):
 			self.root = A
 		A.left = B
 		B.parent = A
+
+		# TEST THIS UPDATE
+		A.size = B.size
+		B.size = B.left.size + B.right.size + 1
+
+		B.height = B.update_height()
+		A.height = A.update_height()
 		return None
 
 	"""Function receives a node in the tree where BF has changed to 2 (AVL Criminal) and rotates LR
@@ -255,10 +270,10 @@ class AVLTree(object):
 	@param node: AVLNode where BF=2
 	"""
 	def left_then_right_rotation(self, node):
-		B = node
+		B = node  # AVL criminal, original node
 		parent = B.parent
-		A = B.left
-		C = B.left.right
+		A = B.left  # left son of AVL criminal
+		C = B.left.right  # node to become new root
 		CL = C.left
 		CR = C.right
 
@@ -281,6 +296,16 @@ class AVLTree(object):
 		CL.parent = A
 		B.left = CR
 		CR.parent = B
+
+		# TEST THIS UPDATE
+		A.size = A.left.size + A.right.size + 1
+		B.size = B.left.size + B.right.size + 1
+		C.size = C.left.size + C.right.size + 1
+
+		A.height = A.update_height()
+		B.height = B.update_height()
+		C.height = C.update_height()
+
 		return None
 
 	"""Function receives a node in the tree where BF has changed to 2 (AVL Criminal) and rotates RL
@@ -314,6 +339,15 @@ class AVLTree(object):
 		CL.parent = A
 		B.right = CR
 		CR.parent = B
+
+		# TEST THIS UPDATE
+		A.size = A.left.size + A.right.size + 1
+		B.size = B.left.size + B.right.size + 1
+		C.size = C.left.size + C.right.size + 1
+
+		A.height = A.update_height()
+		B.height = B.update_height()
+		C.height = C.update_height()
 		return None
 
 
@@ -565,7 +599,7 @@ root.left.left.right.right.right = AVLNode(None,None)
 root.left.left.right.right.left.parent = root.left.left.right.right
 root.left.left.right.right.right.parent = root.left.left.right.right
 """
-
+"""
 C = AVLTree()
 C.root = AVLNode(50, None)
 
@@ -666,3 +700,4 @@ print (C.avl_to_array())
 #C.left_then_right_rotation(C.root.left)
 
 #printree(C.get_root())
+"""
