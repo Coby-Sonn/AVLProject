@@ -279,10 +279,9 @@ class AVLTree(object):
 	@returns: the rank of node in self
 	"""
 	def rank(self, node):
-		# FUNCTION NOT TESTED BECAUSE SIZE FIELD WAS NOT WORKING YET
 		rank_sum = node.left.size + 1
 		node_to_check = node
-		while node_to_check is not None:
+		while node_to_check is not None and node_to_check.parent is not None:
 			if node_to_check == node_to_check.parent.right: # node_to_check is a right son
 				rank_sum = rank_sum + node_to_check.parent.left.size + 1
 			node_to_check = node_to_check.parent
@@ -297,7 +296,6 @@ class AVLTree(object):
 	@returns: the node of rank i in self
 	"""
 	def select(self, i):
-		# NOT TESTED BECAUSE SIZE FIELD DOES NOT WORK
 		return self.select_rec(self.root, i)
 
 	"""Recursively searches for the k'th smallest node in the dictionary
@@ -360,7 +358,6 @@ class AVLTree(object):
 		A.right = B
 		B.parent = A
 
-		# TEST THIS UPDATE
 		A.size = B.size
 		B.size = B.check_size()
 
@@ -390,7 +387,6 @@ class AVLTree(object):
 		A.left = B
 		B.parent = A
 
-		# TEST THIS UPDATE
 		A.size = B.size
 		B.size = B.check_size()
 
@@ -430,7 +426,6 @@ class AVLTree(object):
 		B.left = CR
 		CR.parent = B
 
-		# TEST THIS UPDATE
 		A.size = A.check_size()
 		B.size = B.check_size()
 		C.size = C.check_size()
@@ -473,7 +468,6 @@ class AVLTree(object):
 		B.right = CR
 		CR.parent = B
 
-		# TEST THIS UPDATE
 		A.size = A.check_size()
 		B.size = B.check_size()
 		C.size = C.check_size()
@@ -584,7 +578,7 @@ def rightspace(row):
 
 
 #########
-
+"""
 A = AVLTree()
 key = input("Enter a new key: ")
 while key != "-1":
@@ -595,8 +589,8 @@ while key != "-1":
 
 print(A.root.size)
 print(A.root.height)
-
 """
+
 B = AVLTree()
 keys = [15,7,22,4,10,20,24,2,6,8,11,18,1,5,12]
 for key in keys:
@@ -605,4 +599,3 @@ for key in keys:
 printree(B.root)
 print(B.size())
 print(B.root.height)
-"""
