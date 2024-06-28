@@ -53,6 +53,33 @@ class AVLNode(object):
 	def update_height(self):
 		return max(self.right.height, self.left.height) + 1
 
+	""" Method that finds the successor of given node in tree
+	@param node: AVLNode to find successor of	
+	@return: Successor of given node
+	@rtype: AVLNode
+	"""
+	def successor(self):
+		if self.right is not None:
+			return self.find_min_in_subtree(self.right)
+		node_y = self.parent
+		node_x = self
+		while node_y is not None and node_x is node_y.right:
+			node_x = node_y
+			node_y = node_x.parent
+		return node_y
+
+	""" Method that finds the minimum value in the subtree of the node
+	@param node: AVLNode to be searched
+	@return: AVLNode with minimum value in the subtree of the node
+	@rtype: AVLNode
+	"""
+	@staticmethod
+	def find_min_in_subtree(node):
+		while node.left is not None:
+			node = node.left
+		return node
+
+
 """
 A class implementing an AVL tree.
 """
