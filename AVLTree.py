@@ -116,6 +116,8 @@ class AVLTree(object):
 	"""
 	def __init__(self):
 		self.root = AVLNode(None, None)
+		# DELETE below #
+		self.max_node = self.root
 
 
 	"""searches for a node in the dictionary corresponding to the key
@@ -135,6 +137,72 @@ class AVLTree(object):
 		if node.key == key:
 			return node
 		return None
+
+	# DELETE INSERT_TO_FINGER_TREE FUNCTION #
+	# NOT TESTED
+	def insert_to_finger_tree(self, key, val):
+
+		num_of_operations = 0
+		counter = 0
+
+		new_node = AVLNode(key, val)
+		curr_node = self.max_node
+
+		if key > self.max_node.key:
+			self.max_node.right = new_node
+			new_node.parent = self.max_node
+			new_node.add_virtual_sons()
+			self.max_node = new_node
+			counter += 1
+			num_of_operations += self._insertion_fix(new_node.parent)
+
+		while key < curr_node.key:
+			if key > curr_node.parent.key:
+				# insert between father and right son
+				original_father = curr_node.parent
+				original_son = curr_node
+
+				original_father.right = new_node
+				new_node.parent = original_father
+				new_node.right = original_son
+				original_son.parent = new_node
+				num_of_operations = self._insertion_fix(new_node.parent)
+				return
+
+			elif key < curr_node.parent.key:
+				node_x = curr_node
+				node_y = node_x.parent
+
+				while node_x.is_real_node():
+					node_y = node_x
+					if key < node_x.key:
+						node_x = node_x.left
+					else:
+						node_x = node_x.right
+
+				#  Arrived at a virtual node
+				if node_y is None:  # tree is empty
+					self.root.key = key
+					self.root.value = val
+					self.root.height = 0
+					self.root.size = 1
+					self.root.add_virtual_sons()
+					return num_of_operations
+
+				else:
+					node_x.key = key
+					node_x.value = val
+					node_x.height = 0
+					node_x.size = 1
+					node_x.add_virtual_sons()
+					num_of_operations = self._insertion_fix(node_x.parent)
+
+				return num_of_operations
+
+			else: curr_node = curr_node.parent
+
+	# DELETE ABOVE FUNCTION #
+
 
 	"""inserts a new node into the dictionary with corresponding key and value
 
