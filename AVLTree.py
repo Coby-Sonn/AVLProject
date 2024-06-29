@@ -30,6 +30,7 @@ class AVLNode(object):
 
 	@rtype: bool
 	@returns: False if self is a virtual node, True otherwise.
+	@complexcity: O(1)
 	"""
 	def is_real_node(self):
 		if self.key is None and self.value is None:
@@ -39,6 +40,7 @@ class AVLNode(object):
 	"""returns the balance factor of a node
 	 @rtype: int
 	 @returns: Balance factor of a node
+	 @complexcity: O(1)
 	 """
 	def calculate_balance_factor(self):
 		if not self.is_real_node():
@@ -51,6 +53,7 @@ class AVLNode(object):
 	@rtype: int
 	@returns: height of a node
 	@post: node's height field not updated within this method
+	complexcity: O(1)
 	"""
 	def check_height(self):
 		return max(self.right.height, self.left.height) + 1
@@ -59,6 +62,7 @@ class AVLNode(object):
 	@rtype: int
 	@returns: size of the subtree of the node, including the node
 	@post: node's size field not updated within this method
+	@complexcity: O(1)
 	"""
 	def check_size(self):
 		return self.left.size + self.right.size + 1
@@ -67,6 +71,7 @@ class AVLNode(object):
 	@param node: AVLNode to find successor of	
 	@return: Successor of given node
 	@rtype: AVLNode
+	complexity: O(logn) #the worst case is if we want to find the successor of a leaf and we go all the way up to the rooy - log(n)
 	"""
 	def successor(self):
 
@@ -126,6 +131,7 @@ class AVLTree(object):
 	@param key: a key to be searched
 	@rtype: AVLNode
 	@returns: node corresponding to key
+	@complexity: O(logn)
 	"""
 	def search(self, key):
 		node = self.root
@@ -287,6 +293,7 @@ class AVLTree(object):
 	@pre: node is a real pointer to a node in self
 	@rtype: int
 	@returns: the number of rebalancing operation due to AVL rebalancing
+	@complexity: O(logn)
 	"""
 	def delete(self, node):
 		originalparent = node.parent
@@ -321,7 +328,6 @@ class AVLTree(object):
 			cnt = self.deletion_fix(originalparent)
 			return cnt
 		else:  # node has 2 children (therefore its successor has no left child)
-
 			nodesucc = node.successor()
 			original_node_successor = nodesucc.parent
 			if nodesucc.parent.left is nodesucc:
@@ -354,6 +360,12 @@ class AVLTree(object):
 			cnt = self.deletion_fix(original_node_successor)
 			return cnt
 
+	"""
+	Method that climbs to root and fixes  AVL Tree after deletion
+	@pre: node already deleted from tree, called from delete method only
+	@param node: parent AVLNode of deleted node
+	@complexcity: O(logn)
+	"""
 	def deletion_fix (self, node):
 		cnt=0
 		parent = node
@@ -455,9 +467,28 @@ class AVLTree(object):
 	@pre: a<b
 	@rtype: AVLNode
 	@returns: the node with maximal (lexicographically) value having a<=key<=b, or None if no such keys exist
+	@complexcity: O(n*logn)
+	#note: it can return only if all nodes has value or none has value, because it cannot compare None with strig/num.
+	#also, if the string are abc chars, you must write all values without capital letter or witout, or it won't return the right node
 	"""
 	def max_range(self, a, b):
-		return None
+		curr_node = self.search(a) #search the relevant starting point O(logn)
+		max_node = curr_node
+
+		while curr_node.key < b: #start to search the node with max value. O(n) (if a=min node of the tree and b=max node)
+			if curr_node.value is None:
+				return None
+
+			elif curr_node.value > max_node.value:
+				max_node = curr_node
+			suc_node = curr_node.successor() #O(log(n))
+			curr_node = suc_node
+
+		if max_node.value<curr_node.value: #if key=b is the largest
+			max_node = curr_node
+
+		return max_node
+
 
 	"""returns the root of the tree representing the dictionary
 
@@ -472,6 +503,7 @@ class AVLTree(object):
 	"""Function receives a node in the tree where BF has changed to 2 (AVL Criminal) and rotated RR
 	@type node: AVLNode
 	@param node: AVLNode where BF=2
+	@complexity: O(1) because we just change pointers and calling function that cost O(1) too
 	"""
 	def right_rotation(self, node):
 		parent = node.parent
@@ -501,6 +533,8 @@ class AVLTree(object):
 	"""Function receives a node in the tree where BF has changed to 2 (AVL Criminal) and rotates LL
 	@type node: AVLNode
 	@param node: AVLNode where BF=2
+	@complexity: O(1)
+	
 	"""
 	def left_rotation(self, node):
 		parent = node.parent
@@ -529,6 +563,7 @@ class AVLTree(object):
 	""" Function receives a node in the tree where BF has changed to |2| (AVL Criminal) and rotates LR
 	@type node: AVLNode
 	@param node: AVLNode where BF=2
+	@complexity: O(1)
 	"""
 	def left_then_right_rotation(self, node):
 		B = node  # AVL criminal, original node
@@ -571,6 +606,7 @@ class AVLTree(object):
 	"""Function receives a node in the tree where BF has changed to 2 (AVL Criminal) and rotates RL
 	@type node: AVLNode
 	@param node: AVLNode where BF=2
+	@complexity: O(1)
 	"""
 	def right_then_left_rotation(self, node):
 		B = node
@@ -613,6 +649,7 @@ class AVLTree(object):
 	@pre: AVL_criminal is indeed a criminal (BF checked and BF = |2|)
 	@type AVL_criminal: AVLNode
 	@return: None
+	@complexcity: O(1)
 	"""
 	def pick_rotation(self, AVL_criminal):
 		print("rotating", AVL_criminal.key)
@@ -736,13 +773,25 @@ B = AVLTree()
 #keys = [15,8,22,4,11,20,24,2,9,12,18,13]
 #for key in keys:
 #	B.insert(key,str(key))
-B.insert(1,None)
-
+B.insert(10,None)
+B.insert(5,None)
+B.insert(25,None)
+B.insert(4,None)
+B.insert(100,None)
+B.insert(8,None)
+B.insert(20,None)
+B.insert(2,None)
+B.insert(110,None)
+B.insert(7,None)
+B.insert(15,None)
+B.insert(4.5,None)
+B.insert(90,None)
+B.insert(9,None)
+B.insert(21,None)
+B.insert(17,None)
 
 
 printree(B.root)
-print(B.delete(B.search(1)))
-printree(B.root)
 
-
+print("maxrange", B.max_range (15,110)) #supposed to print 90 in this example
 
