@@ -418,7 +418,9 @@ class AVLTree(object):
 	@complexity: O(1)
 	"""
 	def size(self):
-		return self.root.size
+		if self.root.is_real_node():
+			return self.root.size
+		return 0
 
 	"""compute the rank of node in the dictionary
 
@@ -773,7 +775,7 @@ while key != "-1":
 print(A.root.size)
 print(A.root.height)
 """
-
+"""
 B = AVLTree()
 #keys = [15,8,22,4,11,20,24,2,9,12,18,13]
 #for key in keys:
@@ -800,3 +802,4 @@ printree(B.root)
 
 print("maxrange", B.max_range (15,110)) #supposed to print 90 in this example
 
+"""
