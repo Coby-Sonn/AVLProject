@@ -30,7 +30,7 @@ class AVLNode(object):
 
 	@rtype: bool
 	@returns: False if self is a virtual node, True otherwise.
-	@complexcity: O(1)
+	@complexity: O(1)
 	"""
 	def is_real_node(self):
 		if self.key is None and self.value is None:
@@ -40,7 +40,7 @@ class AVLNode(object):
 	"""returns the balance factor of a node
 	 @rtype: int
 	 @returns: Balance factor of a node
-	 @complexcity: O(1)
+	 @complexity: O(1)
 	 """
 	def calculate_balance_factor(self):
 		if not self.is_real_node():
@@ -53,7 +53,7 @@ class AVLNode(object):
 	@rtype: int
 	@returns: height of a node
 	@post: node's height field not updated within this method
-	complexcity: O(1)
+	@complexity: O(1)
 	"""
 	def check_height(self):
 		return max(self.right.height, self.left.height) + 1
@@ -62,7 +62,7 @@ class AVLNode(object):
 	@rtype: int
 	@returns: size of the subtree of the node, including the node
 	@post: node's size field not updated within this method
-	@complexcity: O(1)
+	@complexity: O(1)
 	"""
 	def check_size(self):
 		return self.left.size + self.right.size + 1
@@ -71,7 +71,7 @@ class AVLNode(object):
 	@param node: AVLNode to find successor of	
 	@return: Successor of given node
 	@rtype: AVLNode
-	complexity: O(logn) #the worst case is if we want to find the successor of a leaf and we go all the way up to the rooy - log(n)
+	@complexity: O(logn) 
 	"""
 	def successor(self):
 
@@ -90,6 +90,7 @@ class AVLNode(object):
 	@param node: AVLNode to be searched
 	@return: AVLNode with minimum value in the subtree of the node
 	@rtype: AVLNode
+	@complexity: O(logn)
 	"""
 	@staticmethod
 	def find_min_in_subtree(node):
@@ -100,6 +101,7 @@ class AVLNode(object):
 	""" Function that creates and adds two virtual sons for given node
 	@param self: leaf node with no sons 
 	@return: None
+	@complexity: O(1)
 	"""
 	def add_virtual_sons(self):
 		self.left = AVLNode(None, None)
@@ -118,6 +120,7 @@ class AVLTree(object):
 	Constructor, you are allowed to add more fields.
 	@type root: AVLNode Object or None
 	@param root: Node to be root of AVLTree
+	@complexity: O(1)
 	"""
 	def __init__(self):
 		self.root = AVLNode(None, None)
@@ -145,6 +148,7 @@ class AVLTree(object):
 		return None
 
 	# DELETE INSERT_TO_FINGER_TREE FUNCTION #
+
 	# NOT TESTED
 	def insert_to_finger_tree(self, key, val):
 
@@ -209,9 +213,7 @@ class AVLTree(object):
 
 	# DELETE ABOVE FUNCTION #
 
-
-	"""inserts a new node into the dictionary with corresponding key and value
-
+	""" Inserts a new node into the dictionary with corresponding key and value
 	@type key: int
 	@pre: key currently does not appear in the dictionary
 	@param key: key of item that is to be inserted to self
@@ -220,6 +222,7 @@ class AVLTree(object):
 	@rtype: int
 	@returns: the number of rebalancing operation due to AVL rebalancing
 	@post: inserted a new node but did not update parent heights 
+	@complexity: O(logn)
 	"""
 	def insert(self, key, val):
 
@@ -255,6 +258,7 @@ class AVLTree(object):
 	""" Method that climbs to root and fixes  AVL Tree
 	@pre: new node already added to tree, called from insert method only
 	@param node_y: parent AVLNode of inserted node
+	@complexity: O(logn)
 	"""
 	def _insertion_fix(self, node_y):
 		number_of_operations = 0
@@ -279,6 +283,7 @@ class AVLTree(object):
 	@pre: validated that no rotations are needed from the param node up
 	@param node: AVLNode from which to update size and heights of nodes
 	@post: updated nodes' size and height fields
+	@complexity: O(logn)
 	"""
 	def _update_up(self, node):
 		while node is not None:
@@ -360,13 +365,12 @@ class AVLTree(object):
 			cnt = self.deletion_fix(original_node_successor)
 			return cnt
 
-	"""
-	Method that climbs to root and fixes  AVL Tree after deletion
+	""" Method that climbs to root and fixes  AVL Tree after deletion
 	@pre: node already deleted from tree, called from delete method only
 	@param node: parent AVLNode of deleted node
-	@complexcity: O(logn)
+	@complexity: O(logn)
 	"""
-	def deletion_fix (self, node):
+	def deletion_fix(self, node):
 		cnt=0
 		parent = node
 
@@ -386,15 +390,16 @@ class AVLTree(object):
 
 		return cnt
 
-	"""returns an array representing dictionary 
+	""" Returns an array representing dictionary 
 	An envelope function using the function avl_to_array_rec
 	@rtype: list
-	@returns: a sorted list according to key of touples (key, value) representing the data structure
+	@returns: a sorted list according to key of tuples (key, value) representing the data structure
+	@complexity: O(n)
 	"""
 	def avl_to_array(self):
 		return self.avl_to_array_rec(self.get_root())
 
-	"""recursive function to return an array representing the dictionary,
+	""" Recursive function to return an array representing the dictionary,
 	traversing the tree in-order	
 	@type node: AVLNode
 	@pre: node is a real pointer to a node in self
@@ -467,12 +472,12 @@ class AVLTree(object):
 	@pre: a<b
 	@rtype: AVLNode
 	@returns: the node with maximal (lexicographically) value having a<=key<=b, or None if no such keys exist
-	@complexcity: O(n*logn)
-	#note: it can return only if all nodes has value or none has value, because it cannot compare None with strig/num.
-	#also, if the string are abc chars, you must write all values without capital letter or witout, or it won't return the right node
+	@complexity: O(n*logn)
+	#note: it can return only if all nodes have values or none have values because it cannot compare None with strig/num.
+	#also, if the strings are abc chars, you must write all values without capital letters or without, or it won't return the right node
 	"""
 	def max_range(self, a, b):
-		curr_node = self.search(a) #search the relevant starting point O(logn)
+		curr_node = self.search(a)  # search the relevant starting point O(logn)
 		max_node = curr_node
 
 		while curr_node.key < b: #start to search the node with max value. O(n) (if a=min node of the tree and b=max node)
@@ -484,16 +489,16 @@ class AVLTree(object):
 			suc_node = curr_node.successor() #O(log(n))
 			curr_node = suc_node
 
-		if max_node.value<curr_node.value: #if key=b is the largest
+		if max_node.value<curr_node.value:  # if key=b is the largest
 			max_node = curr_node
 
 		return max_node
-
 
 	"""returns the root of the tree representing the dictionary
 
 	@rtype: AVLNode
 	@returns: real pointer to the root, None if the dictionary is empty
+	@complexity: O(1)
 	"""
 	def get_root(self):
 		if self.root is not None:
