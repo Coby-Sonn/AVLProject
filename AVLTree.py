@@ -662,7 +662,6 @@ class AVLTree(object):
 	@complexcity: O(1)
 	"""
 	def pick_rotation(self, AVL_criminal):
-		print("rotating", AVL_criminal.key)
 
 		criminal_bf = AVL_criminal.calculate_balance_factor()
 
