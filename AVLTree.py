@@ -415,6 +415,7 @@ class AVLTree(object):
 	@rtype: int
 	@returns: the number of items in dictionary 
 	@post: returned integer is full size of the tree including the root
+	@complexity: O(1)
 	"""
 	def size(self):
 		return self.root.size
@@ -426,12 +427,13 @@ class AVLTree(object):
 	@param node: a node in the dictionary to compute the rank for
 	@rtype: int
 	@returns: the rank of node in self
+	@complexity: O(logn)
 	"""
 	def rank(self, node):
 		rank_sum = node.left.size + 1
 		node_to_check = node
 		while node_to_check is not None and node_to_check.parent is not None:
-			if node_to_check == node_to_check.parent.right: # node_to_check is a right son
+			if node_to_check == node_to_check.parent.right:  # node_to_check is a right son
 				rank_sum = rank_sum + node_to_check.parent.left.size + 1
 			node_to_check = node_to_check.parent
 		return rank_sum
@@ -443,6 +445,7 @@ class AVLTree(object):
 	@param i: the rank to be selected in self
 	@rtype: AVLNode
 	@returns: the node of rank i in self
+	@complexity: O(logn)
 	"""
 	def select(self, i):
 		return self.select_rec(self.root, i)
@@ -452,9 +455,9 @@ class AVLTree(object):
 	@param k: the index of the node to be searched for
 	@rtype: AVLNode
 	@returns: the node of rank i in self
+	@complexity: O(logn)
 	"""
 	def select_rec(self, node, k):
-		# CHECK THIS FUNCTION WHEN SIZE FIELD WORKS
 		r = node.left.size + 1
 		if k == r:
 			return node
@@ -508,7 +511,7 @@ class AVLTree(object):
 	"""Function receives a node in the tree where BF has changed to 2 (AVL Criminal) and rotated RR
 	@type node: AVLNode
 	@param node: AVLNode where BF=2
-	@complexity: O(1) because we just change pointers and calling function that cost O(1) too
+	@complexity: O(1) 
 	"""
 	def right_rotation(self, node):
 		parent = node.parent
@@ -664,21 +667,18 @@ class AVLTree(object):
 		if criminal_bf == 2:
 			son_bf = AVL_criminal.left.calculate_balance_factor()
 			if son_bf == -1:
-				print("lr")
+
 				self.left_then_right_rotation(AVL_criminal)
 				return 2
 			else:
-				print("r")
 				self.right_rotation(AVL_criminal)
 				return 1
 		else:
 			son_bf = AVL_criminal.right.calculate_balance_factor()
 			if son_bf == 1:
-				print("rl")
 				self.right_then_left_rotation(AVL_criminal)
 				return 2
 			else:
-				print("l")
 				self.left_rotation(AVL_criminal)
 				return 1
 
