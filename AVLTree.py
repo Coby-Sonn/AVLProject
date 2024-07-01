@@ -418,7 +418,7 @@ class AVLTree(object):
 	@complexity: O(1)
 	"""
 	def size(self):
-		if self.root.is_real_node():
+		if self.root is not None and self.root.is_real_node():
 			return self.root.size
 		return 0
 
