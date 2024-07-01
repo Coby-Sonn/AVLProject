@@ -302,8 +302,8 @@ class AVLTree(object):
 	"""
 	def delete(self, node):
 		originalparent = node.parent
-		cnt=0
-		if (not(node.left.is_real_node())) and (not(node.right.is_real_node())): #node is a leaf
+		cnt = 0
+		if (not (node.left.is_real_node())) and (not (node.right.is_real_node())):  # node is a leaf
 			if originalparent is not None:
 				if originalparent.left is node:
 					originalparent.left = AVLNode(None,None)
@@ -316,8 +316,7 @@ class AVLTree(object):
 			cnt = self.deletion_fix(originalparent)
 			return cnt
 
-
-		elif (not(node.left.is_real_node())) ^ (not(node.right.is_real_node())): # node has only one child (I used ^ as xor)
+		elif (not(node.left.is_real_node())) ^ (not(node.right.is_real_node())):  # node has  one child
 			if originalparent is not None:
 				if not node.left.is_real_node():  # there is a right son
 					node.right.parent = originalparent
@@ -325,7 +324,7 @@ class AVLTree(object):
 				else:  # there is a left son
 					node.left.parent = originalparent
 					originalparent.left = node.left  # created bypass
-			else:  # the node was the root with only one child
+			else:  # the node is the root with one child
 				if node.right.is_real_node():
 					self.root = node.right
 				else:
