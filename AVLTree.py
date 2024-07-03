@@ -151,65 +151,75 @@ class AVLTree(object):
 
 	# NOT TESTED
 	def insert_to_finger_tree(self, key, val):
-
 		num_of_operations = 0
 		counter = 0
 
-		new_node = AVLNode(key, val)
 		curr_node = self.max_node
+		parent_node = curr_node.parent
 
-		if key > self.max_node.key:
+		if self.size() == 0:
+			self.root.key = key
+			self.root.value = val
+			self.root.height += 1
+			self.root.size += 1
+			self.root.add_virtual_sons()
+			return num_of_operations + counter
+
+		if key > curr_node.key:
+			new_node = AVLNode(key, val)
+			new_node.size += 1
+			new_node.height += 1
+			curr_node.height += 1
+			num_of_operations += 1
+			curr_node.size += 1
 			self.max_node.right = new_node
 			new_node.parent = self.max_node
 			new_node.add_virtual_sons()
 			self.max_node = new_node
 			counter += 1
+			if new_node.parent is None or not new_node.parent.is_real_node():
+				self.root = new_node
+				return num_of_operations, counter
 			num_of_operations += self._insertion_fix(new_node.parent)
+			return num_of_operations + counter
 
-		while key < curr_node.key:
-			if key > curr_node.parent.key:
-				# insert between father and right son
-				original_father = curr_node.parent
-				original_son = curr_node
+		if parent_node is not None:
+			while key < curr_node.key and key < parent_node.key:
+				curr_node = parent_node
+				parent_node = curr_node.parent
+				counter += 1
+				if parent_node is None or not parent_node.is_real_node():
+					break
 
-				original_father.right = new_node
-				new_node.parent = original_father
-				new_node.right = original_son
-				original_son.parent = new_node
-				num_of_operations = self._insertion_fix(new_node.parent)
-				return
+		# binary search and insert from parent_node
 
-			elif key < curr_node.parent.key:
-				node_x = curr_node
-				node_y = node_x.parent
+		node_x = parent_node if parent_node else curr_node
+		while node_x.is_real_node():
+			if key < node_x.key:
+				if node_x.left is None or not node_x.left.is_real_node():
+					new_node = AVLNode(key, val)
+					new_node.size += 1
+					new_node.height += 1
+					node_x.left = new_node
+					new_node.parent = node_x
+					new_node.add_virtual_sons()
+					num_of_operations += self._insertion_fix(new_node.parent)
+					return num_of_operations + counter + 1
+				node_x = node_x.left
+			else:
+				if node_x.right is None or not node_x.right.is_real_node():
+					new_node = AVLNode(key, val)
+					new_node.size += 1
+					new_node.height += 1
+					node_x.right = new_node
+					new_node.parent = node_x
+					new_node.add_virtual_sons()
+					num_of_operations += self._insertion_fix(new_node.parent)
+					return num_of_operations + counter + 1
+				node_x = node_x.right
+			counter += 1
 
-				while node_x.is_real_node():
-					node_y = node_x
-					if key < node_x.key:
-						node_x = node_x.left
-					else:
-						node_x = node_x.right
-
-				#  Arrived at a virtual node
-				if node_y is None:  # tree is empty
-					self.root.key = key
-					self.root.value = val
-					self.root.height = 0
-					self.root.size = 1
-					self.root.add_virtual_sons()
-					return num_of_operations
-
-				else:
-					node_x.key = key
-					node_x.value = val
-					node_x.height = 0
-					node_x.size = 1
-					node_x.add_virtual_sons()
-					num_of_operations = self._insertion_fix(node_x.parent)
-
-				return num_of_operations
-
-			else: curr_node = curr_node.parent
+		return num_of_operations + counter
 
 	# DELETE ABOVE FUNCTION #
 
@@ -305,7 +315,7 @@ class AVLTree(object):
 	@returns: the number of rebalancing operation due to AVL rebalancing
 	@complexity: O(logn)
 	"""
-	def delete(self, node):
+	def delete(self, node):  # CHECK IF COUNTER WORKS
 		originalparent = node.parent
 		cnt = 0
 		if (not (node.left.is_real_node())) and (not (node.right.is_real_node())):  # node is a leaf
@@ -336,6 +346,7 @@ class AVLTree(object):
 					self.root = node.left
 			cnt = self.deletion_fix(originalparent)
 			return cnt
+
 		else:  # node has 2 children (therefore its successor has no left child)
 			nodesucc = node.successor()
 			original_node_successor = nodesucc.parent
@@ -809,8 +820,22 @@ print("maxrange", B.max_range (15,110)) #supposed to print 90 in this example
 
 """
 B = AVLTree()
-print(B.insert(3,"a"))
-print(B.insert(1,"b"))
-print(B.insert(2,"c"))
-printree(B.root)
+A = AVLTree()
 
+lst = []
+for i in range(1111*8):
+	lst.append(i)
+lst.reverse()
+
+counts = 0
+for key in lst:
+	counts += B.insert_to_finger_tree(key,key)
+print(counts)
+
+import random
+
+random.shuffle(lst)
+counts = 0
+for key in lst:
+	counts += A.insert_to_finger_tree(key,key)
+print(counts)
