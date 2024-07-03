@@ -269,13 +269,14 @@ class AVLTree(object):
 			bf = node_y.calculate_balance_factor()
 			if abs(bf) < 2:
 				if original_y_height == node_y.height:
-					self._update_up(node_y.parent)  # update sizes and heights up
-					return
+					number_of_operations += self._update_up(node_y.parent)  # update sizes and heights up
+					return number_of_operations
 				else:
 					node_y = node_y.parent
+					number_of_operations += 1
 			else:  # |bf| = 2
-				number_of_operations = self.pick_rotation(node_y)
-				self._update_up(node_y.parent.parent)
+				number_of_operations += self.pick_rotation(node_y)
+				number_of_operations += self._update_up(node_y.parent.parent)
 				return number_of_operations
 		return number_of_operations
 
@@ -286,11 +287,15 @@ class AVLTree(object):
 	@complexity: O(logn)
 	"""
 	def _update_up(self, node):
+		cnt = 0
 		while node is not None:
+			original_height = node.height
 			node.height = node.check_height()
+			if original_height != node.height:
+				cnt += 1
 			node.size = node.check_size()
 			node = node.parent
-		return
+		return cnt
 
 	"""deletes node from the dictionary
 
@@ -306,17 +311,17 @@ class AVLTree(object):
 		if (not (node.left.is_real_node())) and (not (node.right.is_real_node())):  # node is a leaf
 			if originalparent is not None:
 				if originalparent.left is node:
-					originalparent.left = AVLNode(None,None)
+					originalparent.left = AVLNode(None, None)
 					originalparent.left.parent = originalparent
 				if originalparent.right is node:
-					originalparent.right = AVLNode(None,None)
+					originalparent.right = AVLNode(None, None)
 					originalparent.right.parent = originalparent
 			else:
-				self.root = None  # the tree is now empty
+				self.root = AVLNode(None, None)  # the tree is now empty
 			cnt = self.deletion_fix(originalparent)
 			return cnt
 
-		elif (not(node.left.is_real_node())) ^ (not(node.right.is_real_node())):  # node has  one child
+		elif (not (node.left.is_real_node())) ^ (not (node.right.is_real_node())):  # node has  one child
 			if originalparent is not None:
 				if not node.left.is_real_node():  # there is a right son
 					node.right.parent = originalparent
@@ -370,19 +375,21 @@ class AVLTree(object):
 	@complexity: O(logn)
 	"""
 	def deletion_fix(self, node):
-		cnt=0
+		cnt = 0
 		parent = node
 
 		while parent is not None:
 			original_parent_height = parent.height
 			parent.height = parent.check_height()
 			parent.size = parent.check_size()
+			if original_parent_height != parent.height:  # counting height changes
+				cnt += 1
 			BF = parent.calculate_balance_factor()  # compute BF of parent
 			if abs(BF) < 2 and original_parent_height == parent.height:  # No rotation required
 				return cnt  # terminate - maybe better to return 0? because in this case there is no rotation
 			elif abs(BF) < 2 and original_parent_height != parent.height:  # high have been changed but BF is ok
 				parent = parent.parent  # go back to the while with the parent of the parent, until you find |BF|=2
-			else: # |BF| = 2
+			else:  # |BF| = 2
 				new_parent = parent.parent
 				cnt += self.pick_rotation(parent)
 				parent = new_parent
@@ -801,3 +808,9 @@ printree(B.root)
 print("maxrange", B.max_range (15,110)) #supposed to print 90 in this example
 
 """
+B = AVLTree()
+print(B.insert(3,"a"))
+print(B.insert(1,"b"))
+print(B.insert(2,"c"))
+printree(B.root)
+
