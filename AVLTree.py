@@ -450,6 +450,8 @@ class AVLTree(object):
 	@complexity: O(logn)
 	"""
 	def rank(self, node):
+		if not self.root.is_real_node():  # Empty tree
+			return 0
 		rank_sum = node.left.size + 1
 		node_to_check = node
 		while node_to_check is not None and node_to_check.parent is not None:
@@ -774,6 +776,14 @@ def rightspace(row):
 		i += 1
 	return i
 
+def check_switches(lst):
+	counter = 0
+	for i in range(len(lst)):
+		for j in range(i+1, len(lst)):
+			if lst[i] > lst[j]:
+				counter += 1
+
+	return counter
 
 #########
 """
@@ -814,10 +824,56 @@ B.insert(17,None)
 printree(B.root)
 
 print("maxrange", B.max_range (15,110)) #supposed to print 90 in this example
-
 """
+import random
 B = AVLTree()
 A = AVLTree()
+
+lst = []
+for i in range(1111*2):
+	lst.append(i)
+lst.reverse()
+
+counts = 0
+for key in lst:
+	counts += B.insert_to_finger_tree(key, key)
+print(2, len(lst))
+print("backwards: ")
+print("				balance ops: ", counts)
+print("				switches: ", check_switches(lst))
+
+
+random.shuffle(lst)
+counts = 0
+for key in lst:
+	counts += A.insert_to_finger_tree(key, key)
+
+print("random: ")
+print("				balance ops: ", counts)
+print("				switches: ", check_switches(lst))
+
+lst = []
+for i in range(1111*4):
+	lst.append(i)
+lst.reverse()
+
+counts = 0
+for key in lst:
+	counts += B.insert_to_finger_tree(key, key)
+print("2^2", len(lst))
+print("backwards: ")
+print("				balance ops: ", counts)
+print("				switches: ", check_switches(lst))
+
+
+random.shuffle(lst)
+counts = 0
+for key in lst:
+	counts += A.insert_to_finger_tree(key, key)
+
+print("random: ")
+print("				balance ops: ", counts)
+print("				switches: ", check_switches(lst))
 
 lst = []
 for i in range(1111*8):
@@ -826,13 +882,64 @@ lst.reverse()
 
 counts = 0
 for key in lst:
-	counts += B.insert_to_finger_tree(key,key)
-print(counts)
+	counts += B.insert_to_finger_tree(key, key)
+print("2^3", len(lst))
+print("backwards: ")
+print("				balance ops: ", counts)
+print("				switches: ", check_switches(lst))
 
-import random
 
 random.shuffle(lst)
 counts = 0
 for key in lst:
-	counts += A.insert_to_finger_tree(key,key)
-print(counts)
+	counts += A.insert_to_finger_tree(key, key)
+
+print("random: ")
+print("				balance ops: ", counts)
+print("				switches: ", check_switches(lst))
+
+lst = []
+for i in range(1111*16):
+	lst.append(i)
+lst.reverse()
+
+counts = 0
+for key in lst:
+	counts += B.insert_to_finger_tree(key, key)
+print("2^4", len(lst))
+print("backwards: ")
+print("				balance ops: ", counts)
+print("				switches: ", check_switches(lst))
+
+
+random.shuffle(lst)
+counts = 0
+for key in lst:
+	counts += A.insert_to_finger_tree(key, key)
+
+print("random: ")
+print("				balance ops: ", counts)
+print("				switches: ", check_switches(lst))
+
+lst = []
+for i in range(1111*32):
+	lst.append(i)
+lst.reverse()
+
+counts = 0
+for key in lst:
+	counts += B.insert_to_finger_tree(key, key)
+print("2^5", len(lst))
+print("backwards: ")
+print("				balance ops: ", counts)
+print("				switches: ", check_switches(lst))
+
+
+random.shuffle(lst)
+counts = 0
+for key in lst:
+	counts += A.insert_to_finger_tree(key, key)
+
+print("random: ")
+print("				balance ops: ", counts)
+print("				switches: ", check_switches(lst))
