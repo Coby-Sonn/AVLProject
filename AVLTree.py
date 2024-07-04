@@ -25,7 +25,7 @@ class AVLNode(object):
 		self.parent = None
 		self.height = -1
 		self.size = 0
-		#self.succ = None
+		self.succ = None
 
 	"""returns whether self is not a virtual node 
 
@@ -349,7 +349,7 @@ class AVLTree(object):
 			return cnt
 
 		else:  # node has 2 children (therefore its successor has no left child)
-			nodesucc = node.successor()
+			nodesucc = node.successor
 			original_node_successor = nodesucc.parent
 			if nodesucc.parent.left is nodesucc:
 				nodesuccisleftson = True
