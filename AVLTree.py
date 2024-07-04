@@ -25,7 +25,8 @@ class AVLNode(object):
 		self.parent = None
 		self.height = -1
 		self.size = 0
-		self.succ = None
+		self.successor_node = None
+		self.predecessor_node = None
 
 	"""returns whether self is not a virtual node 
 
@@ -75,7 +76,6 @@ class AVLNode(object):
 	@complexity: O(logn) 
 	"""
 	def successor(self):
-
 		if self.right.is_real_node():
 			return self.find_min_in_subtree(self.right)
 		node_y = self.parent
@@ -86,6 +86,24 @@ class AVLNode(object):
 
 		return node_y
 
+	""" Method that finds the predecessor of given node in tree
+	@param self: AVLNode to find predecessor of
+	@return predecessor of given AVLNode
+	@Complexity: O(logn)
+	"""
+	def predecessor(self):
+		# Case 1: Node has a left child, find the maximum in the left subtree
+		if self.left.is_real_node():
+			return self.find_max_in_subtree(self.left)
+
+		# Case 2: Node does not have a left child, traverse up the tree
+		node_y = self.parent
+		node_x = self
+		while node_y is not None and node_x is node_y.left:
+			node_x = node_y
+			node_y = node_x.parent
+
+		return node_y
 
 	""" Method that finds the minimum value in the subtree of the node
 	@param node: AVLNode to be searched
@@ -97,6 +115,18 @@ class AVLNode(object):
 	def find_min_in_subtree(node):
 		while node.left.is_real_node():
 			node = node.left
+		return node
+
+	""" Method that finds the maximum value in the subtree of the node
+	@param node: AVLNode to be searched
+	@return: AVLNode with maximum value in the subtree of the node
+	@rtype: AVLNode
+	@complexity: O(logn)
+	"""
+	@staticmethod
+	def find_max_in_subtree(node):
+		while node.right.is_real_node():
+			node = node.right
 		return node
 
 	""" Function that creates and adds two virtual sons for given node
@@ -262,6 +292,8 @@ class AVLTree(object):
 			node_x.height = 0
 			node_x.size = 1
 			node_x.add_virtual_sons()
+			node_x.successor_node = node_x.successor()
+			node_x.predecessor_node = node_x.predecessor()
 			num_of_operations = self._insertion_fix(node_x.parent)
 
 		return num_of_operations
@@ -329,7 +361,7 @@ class AVLTree(object):
 					originalparent.right.parent = originalparent
 			else:
 				self.root = AVLNode(None, None)  # the tree is now empty
-			cnt = self.deletion_fix(originalparent)
+			cnt = self._deletion_fix(originalparent)
 			return cnt
 
 		elif (not (node.left.is_real_node())) ^ (not (node.right.is_real_node())):  # node has  one child
@@ -345,7 +377,7 @@ class AVLTree(object):
 					self.root = node.right
 				else:
 					self.root = node.left
-			cnt = self.deletion_fix(originalparent)
+			cnt = self._deletion_fix(originalparent)
 			return cnt
 
 		else:  # node has 2 children (therefore its successor has no left child)
@@ -378,7 +410,7 @@ class AVLTree(object):
 			nodesucc.left = node.left
 			nodesucc.right.parent = nodesucc
 			nodesucc.left.parent = nodesucc
-			cnt = self.deletion_fix(original_node_successor)
+			cnt = self._deletion_fix(original_node_successor)
 			return cnt
 
 	""" Method that climbs to root and fixes  AVL Tree after deletion
@@ -386,7 +418,7 @@ class AVLTree(object):
 	@param node: parent AVLNode of deleted node
 	@complexity: O(logn)
 	"""
-	def deletion_fix(self, node):
+	def _deletion_fix(self, node):
 		cnt = 0
 		parent = node
 
@@ -825,10 +857,10 @@ printree(B.root)
 
 print("maxrange", B.max_range (15,110)) #supposed to print 90 in this example
 """
+"""
 import random
 B = AVLTree()
 A = AVLTree()
-
 lst = []
 for i in range(1111*2):
 	lst.append(i)
@@ -943,3 +975,26 @@ for key in lst:
 print("random: ")
 print("				balance ops: ", counts)
 print("				switches: ", check_switches(lst))
+"""
+import random
+A = AVLTree()
+lst = [1,2,3,4,5,6,7,8,9]
+random.shuffle(lst)
+print(lst)
+for i in lst:
+	A.insert(i,str(i))
+printree(A.root)
+i = int(input("Enter a number to search for: "))
+while i != -1:
+	node = A.search(i)
+	if node is not None and node.is_real_node():
+		succ = node.successor()
+		pred = node.predecessor()
+	if pred is None: print("pred expected", i-1,"received None")
+	else: print("pred expected",i-1,"received",pred.key)
+	if succ is None: print("succ expected", i+1,"received None")
+	else: print("succ expected",i+1,"received",succ.key)
+	i = int(input("Enter a number to search for: "))
+
+
+
