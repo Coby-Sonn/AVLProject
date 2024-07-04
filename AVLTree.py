@@ -25,6 +25,7 @@ class AVLNode(object):
 		self.parent = None
 		self.height = -1
 		self.size = 0
+		#self.succ = None
 
 	"""returns whether self is not a virtual node 
 
@@ -495,18 +496,14 @@ class AVLTree(object):
 	@rtype: AVLNode
 	@returns: the node with maximal (lexicographically) value having a<=key<=b, or None if no such keys exist
 	@complexity: O(n*logn)
-	#note: it can return only if all nodes have values or none have values because it cannot compare None with strig/num.
 	#also, if the strings are abc chars, you must write all values without capital letters or without, or it won't return the right node
 	"""
 	def max_range(self, a, b):
 		curr_node = self.search(a)  # search the relevant starting point O(logn)
 		max_node = curr_node
 
-		while curr_node.key < b: #start to search the node with max value. O(n) (if a=min node of the tree and b=max node)
-			if curr_node.value is None:
-				return None
-
-			elif curr_node.value > max_node.value:
+		while curr_node.is_real_node() and curr_node.key < b: #start to search the node with max value. O(n) (if a=min node of the tree and b=max node)
+			if curr_node.value > max_node.value:
 				max_node = curr_node
 			suc_node = curr_node.successor() #O(log(n))
 			curr_node = suc_node
@@ -801,7 +798,7 @@ B.insert(5,None)
 B.insert(25,None)
 B.insert(4,None)
 B.insert(100,None)
-B.insert(8,None)
+B.insert(8,"c")
 B.insert(20,None)
 B.insert(2,None)
 B.insert(110,None)
