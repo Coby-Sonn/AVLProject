@@ -438,6 +438,7 @@ class AVLTree(object):
 				else:
 					self.root = nodesucc
 					self.root.parent = None
+
 			else:
 				if originalparent is not None:
 					originalparent.right = nodesucc
@@ -454,7 +455,7 @@ class AVLTree(object):
 			cnt = self._deletion_fix(original_node_successor)
 			return cnt
 
-	""" Method that climbs to root and fixes  AVL Tree after deletion
+	""" Method that climbs to root and fixes AVL Tree after deletion
 	@pre: node already deleted from tree, called from delete method only
 	@param node: parent AVLNode of deleted node
 	@complexity: O(logn)
@@ -1020,7 +1021,7 @@ while i != -1:
 
 
 A = AVLTree()
-for i in range(10):
+for i in range(0,3):
 	A.insert(i,str(i))
 printree(A.root)
 A.delete(A.root)
