@@ -292,8 +292,15 @@ class AVLTree(object):
 			node_x.height = 0
 			node_x.size = 1
 			node_x.add_virtual_sons()
+
 			node_x.successor_node = node_x.successor()
 			node_x.predecessor_node = node_x.predecessor()
+			if node_x.predecessor_node is not None:
+				node_x.predecessor_node.successor_node = node_x
+			if node_x.successor_node is not None:
+				node_x.successor_node.predecessor_node = node_x
+
+
 			num_of_operations = self._insertion_fix(node_x.parent)
 
 		return num_of_operations
@@ -348,7 +355,8 @@ class AVLTree(object):
 	@returns: the number of rebalancing operation due to AVL rebalancing
 	@complexity: O(logn)
 	"""
-	def delete(self, node):  # CHECK IF COUNTER WORKS
+
+	def delete(self, node):
 		originalparent = node.parent
 		cnt = 0
 		if (not (node.left.is_real_node())) and (not (node.right.is_real_node())):  # node is a leaf
@@ -356,15 +364,22 @@ class AVLTree(object):
 				if originalparent.left is node:
 					originalparent.left = AVLNode(None, None)
 					originalparent.left.parent = originalparent
-				if originalparent.right is node:
+
+				elif originalparent.right is node:
+					originalparent.successor_node = originalparent.right.successor_node
 					originalparent.right = AVLNode(None, None)
 					originalparent.right.parent = originalparent
+
+				node.predecessor_node.successor_node = node.successor_node
+				node.successor_node.predecessor_node = node.predecessor_node
+
 			else:
 				self.root = AVLNode(None, None)  # the tree is now empty
+			# I didn't update successor and predecessor here
 			cnt = self._deletion_fix(originalparent)
 			return cnt
 
-		elif (not (node.left.is_real_node())) ^ (not (node.right.is_real_node())):  # node has  one child
+		elif (not (node.left.is_real_node())) ^ (not (node.right.is_real_node())):  # node has one child
 			if originalparent is not None:
 				if not node.left.is_real_node():  # there is a right son
 					node.right.parent = originalparent
@@ -372,26 +387,32 @@ class AVLTree(object):
 				else:  # there is a left son
 					node.left.parent = originalparent
 					originalparent.left = node.left  # created bypass
+
+				node.predecessor_node.successor_node = node.successor_node
+				node.successor_node.predecessor_node = node.predecessor_node
+
 			else:  # the node is the root with one child
 				if node.right.is_real_node():
+					node.successor_node.predecessor_node = node.predecessor_node
 					self.root = node.right
+
 				else:
+					node.predecessor_node.successor_node = node.successor_node
 					self.root = node.left
+
 			cnt = self._deletion_fix(originalparent)
 			return cnt
 
 		else:  # node has 2 children (therefore its successor has no left child)
-			nodesucc = node.successor
+			nodesucc = node.successor_node
 			original_node_successor = nodesucc.parent
 			if nodesucc.parent.left is nodesucc:
 				nodesuccisleftson = True
 			else:
 				nodesuccisleftson = False
-
-			if nodesucc.right is not None:
-				nodesucc.parent.left = nodesucc.left  # remove successor from the tree
+			if nodesucc.right is not None and nodesucc.right.is_real_node():
+				nodesucc.parent.right = nodesucc.right  # remove successor from the tree
 				nodesucc.right.parent = nodesucc.parent
-
 			if nodesuccisleftson:  # understanding if nodesucc will be left or right son
 				if originalparent is not None:
 					originalparent.left = nodesucc
@@ -404,12 +425,13 @@ class AVLTree(object):
 				else:
 					self.root = nodesucc
 					self.root.parent = None
-
 			nodesucc.parent = originalparent  # replace node by successor
 			nodesucc.right = node.right
 			nodesucc.left = node.left
 			nodesucc.right.parent = nodesucc
 			nodesucc.left.parent = nodesucc
+			node.successor_node.predecessor_node = node.predecessor_node
+			node.predecessor_node.successor_node = node.successor_node
 			cnt = self._deletion_fix(original_node_successor)
 			return cnt
 
@@ -529,18 +551,20 @@ class AVLTree(object):
 	@pre: a<b
 	@rtype: AVLNode
 	@returns: the node with maximal (lexicographically) value having a<=key<=b, or None if no such keys exist
-	@complexity: O(n*logn)
-	#also, if the strings are abc chars, you must write all values without capital letters or without, or it won't return the right node
+	@complexity: O(n)
 	"""
 	def max_range(self, a, b):
 		curr_node = self.search(a)  # search the relevant starting point O(logn)
 		max_node = curr_node
-
-		while curr_node.is_real_node() and curr_node.key < b: #start to search the node with max value. O(n) (if a=min node of the tree and b=max node)
-			if curr_node.value > max_node.value:
+		while curr_node.is_real_node() and curr_node.key <= b: #start to search the node with max value. O(n) (if a=min node of the tree and b=max node)
+			print(curr_node.key, curr_node.value)
+			if curr_node.value.lower() > max_node.value.lower():
 				max_node = curr_node
-			suc_node = curr_node.successor() #O(log(n))
+
+			suc_node = curr_node.successor_node  # O(1)
 			curr_node = suc_node
+			if curr_node.successor_node is None:
+				break
 
 		if max_node.value<curr_node.value:  # if key=b is the largest
 			max_node = curr_node
@@ -830,33 +854,45 @@ while key != "-1":
 print(A.root.size)
 print(A.root.height)
 """
-"""
+
 B = AVLTree()
 #keys = [15,8,22,4,11,20,24,2,9,12,18,13]
 #for key in keys:
 #	B.insert(key,str(key))
-B.insert(10,None)
-B.insert(5,None)
-B.insert(25,None)
-B.insert(4,None)
-B.insert(100,None)
+B.insert(2,"a")
+
+B.insert(5,"B")
+
+B.insert(4,"c")
+B.insert(100,"d")
+B.insert(25,"C")
+B.insert(20,"@1")
+
 B.insert(8,"c")
-B.insert(20,None)
-B.insert(2,None)
-B.insert(110,None)
-B.insert(7,None)
-B.insert(15,None)
-B.insert(4.5,None)
-B.insert(90,None)
-B.insert(9,None)
-B.insert(21,None)
-B.insert(17,None)
+B.insert(7,"i")
+B.insert(15,"eef")
+B.insert(4.5,"g")
+B.insert(90,"z ")
+B.insert(9,"i")
+B.insert(21,"j")
+B.insert(10,"A")
+B.insert(17,"k")
+B.insert(110,"zzzz")
 
 
 printree(B.root)
+node = B.search(2)
+while node.successor_node is not None:
+	print(node.successor_node.key)
+	node=node.successor_node
 
-print("maxrange", B.max_range (15,110)) #supposed to print 90 in this example
-"""
+
+print("maxrange", B.max_range (15,110).key) #supposed to print 90 in this example
+
+B.delete(B.search(25))
+printree (B.root)
+print ("suc :",B.search(21).successor_node.key, "pre15:",B.search(90).predecessor_node.key)
+
 """
 import random
 B = AVLTree()
@@ -976,6 +1012,7 @@ print("random: ")
 print("				balance ops: ", counts)
 print("				switches: ", check_switches(lst))
 """
+"""
 import random
 A = AVLTree()
 lst = [1,2,3,4,5,6,7,8,9]
@@ -996,5 +1033,5 @@ while i != -1:
 	else: print("succ expected",i+1,"received",succ.key)
 	i = int(input("Enter a number to search for: "))
 
-
+"""
 
