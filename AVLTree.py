@@ -140,6 +140,21 @@ class AVLNode(object):
 		self.right = AVLNode(None, None)
 		self.right.parent = self
 
+		## DELETE BELOW FUNCTIONS ##
+	def get_value(self):
+		return self.value
+	def get_left(self):
+		return self.left
+	def get_right(self):
+		return self.right
+	def get_height(self):
+		return self.height
+	def get_parent(self):
+		return self.parent
+	def get_key(self):
+		return self.key
+
+
 
 """
 A class implementing an AVL tree.
@@ -370,8 +385,10 @@ class AVLTree(object):
 					originalparent.right = AVLNode(None, None)
 					originalparent.right.parent = originalparent
 
-				node.predecessor_node.successor_node = node.successor_node
-				node.successor_node.predecessor_node = node.predecessor_node
+				if node.predecessor_node is not None:
+					node.predecessor_node.successor_node = node.successor_node
+				if node.successor_node is not None:
+					node.successor_node.predecessor_node = node.predecessor_node
 
 			else:
 				self.root = AVLNode(None, None)  # the tree is now empty
@@ -388,8 +405,10 @@ class AVLTree(object):
 					node.left.parent = originalparent
 					originalparent.left = node.left  # created bypass
 
-				node.predecessor_node.successor_node = node.successor_node
-				node.successor_node.predecessor_node = node.predecessor_node
+				if node.predecessor_node is not None:
+					node.predecessor_node.successor_node = node.successor_node
+				if node.successor_node is not None:
+					node.successor_node.predecessor_node = node.predecessor_node
 
 			else:  # the node is the root with one child
 				if node.right.is_real_node():
@@ -844,6 +863,8 @@ def check_switches(lst):
 #########
 """
 A = AVLTree()
+
+
 key = input("Enter a new key: ")
 while key != "-1":
 	A.insert(int(key),key)
@@ -854,44 +875,6 @@ while key != "-1":
 print(A.root.size)
 print(A.root.height)
 """
-
-B = AVLTree()
-#keys = [15,8,22,4,11,20,24,2,9,12,18,13]
-#for key in keys:
-#	B.insert(key,str(key))
-B.insert(2,"a")
-
-B.insert(5,"B")
-
-B.insert(4,"c")
-B.insert(100,"d")
-B.insert(25,"C")
-B.insert(20,"@1")
-
-B.insert(8,"c")
-B.insert(7,"i")
-B.insert(15,"eef")
-B.insert(4.5,"g")
-B.insert(90,"z ")
-B.insert(9,"i")
-B.insert(21,"j")
-B.insert(10,"A")
-B.insert(17,"k")
-B.insert(110,"zzzz")
-
-
-printree(B.root)
-node = B.search(2)
-while node.successor_node is not None:
-	print(node.successor_node.key)
-	node=node.successor_node
-
-
-print("maxrange", B.max_range (15,110).key) #supposed to print 90 in this example
-
-B.delete(B.search(25))
-printree (B.root)
-print ("suc :",B.search(21).successor_node.key, "pre15:",B.search(90).predecessor_node.key)
 
 """
 import random
@@ -1035,3 +1018,12 @@ while i != -1:
 
 """
 
+
+A = AVLTree()
+for i in range(10):
+	A.insert(i,str(i))
+printree(A.root)
+A.delete(A.root)
+
+print(A.size())
+printree(A.root)
