@@ -58,7 +58,9 @@ class AVLNode(object):
 	@complexity: O(1)
 	"""
 	def check_height(self):
-		return max(self.right.height, self.left.height) + 1
+		left_height = self.left.height if self.left else -1
+		right_height = self.right.height if self.right else -1
+		return max(left_height, right_height) + 1
 
 	""" Calculates and returns the size of the subtree of a node
 	@rtype: int
@@ -67,7 +69,11 @@ class AVLNode(object):
 	@complexity: O(1)
 	"""
 	def check_size(self):
-		return self.left.size + self.right.size + 1
+		if not self.is_real_node():
+			return 0
+		left_size = self.left.size if self.left.is_real_node() else 0
+		right_size = self.right.size if self.right.is_real_node() else 0
+		return 1 + left_size + right_size
 
 	""" Method that finds the successor of given node in tree
 	@param node: AVLNode to find successor of	
@@ -173,7 +179,6 @@ class AVLTree(object):
 		# DELETE below #
 		self.max_node = self.root
 
-
 	"""searches for a node in the dictionary corresponding to the key
 
 	@type key: int
@@ -194,8 +199,6 @@ class AVLTree(object):
 		return None
 
 	# DELETE INSERT_TO_FINGER_TREE FUNCTION #
-
-	# NOT TESTED
 	def insert_to_finger_tree(self, key, val):
 		num_of_operations = 0
 		counter = 0
@@ -266,7 +269,6 @@ class AVLTree(object):
 			counter += 1
 
 		return num_of_operations + counter
-
 	# DELETE ABOVE FUNCTION #
 
 	""" Inserts a new node into the dictionary with corresponding key and value
@@ -362,7 +364,7 @@ class AVLTree(object):
 			node = node.parent
 		return cnt
 
-	"""deletes node from the dictionary
+	""" Deletes a node from the dictionary
 
 	@type node: AVLNode
 	@pre: node is a real pointer to a node in self
@@ -370,7 +372,6 @@ class AVLTree(object):
 	@returns: the number of rebalancing operation due to AVL rebalancing
 	@complexity: O(logn)
 	"""
-
 	def delete(self, node):
 
 		if (not (node.left.is_real_node())) and (not (node.right.is_real_node())):  # node is a leaf
@@ -381,51 +382,63 @@ class AVLTree(object):
 			ans = self.delete_node_with_one_child(node)
 
 		else:
-			ans = self.delete_node_with_two_child(node)
+			ans = self.delete_node_with_two_children(node)
 
 		return ans
 
-
-	def delete_leaf(self,node):
-		originalparent = node.parent
+	def delete_leaf(self, node):
+		if self.root is node and self.size() == 1:
+			self.root = AVLNode(None,None)
+			self.root.size = 1
+			self.root.height = 0
+			return 0
+		original_parent = node.parent
 		cnt = 0
-		if originalparent is not None:
-			if originalparent.left is node:
-				originalparent.left = AVLNode(None, None)
-				originalparent.left.parent = originalparent
-
-			elif originalparent.right is node:
-				originalparent.successor_node = originalparent.right.successor_node
-				originalparent.right = AVLNode(None, None)
-				originalparent.right.parent = originalparent
+		if original_parent is not None:
+			if original_parent.left is node:
+				original_parent.left = AVLNode(None, None)
+				original_parent.left.parent = original_parent
+			elif original_parent.right is node:
+				original_parent.successor_node = original_parent.right.successor_node
+				original_parent.right = AVLNode(None, None)
+				original_parent.right.parent = original_parent
 
 			if node.predecessor_node is not None:
 				node.predecessor_node.successor_node = node.successor_node
 			if node.successor_node is not None:
 				node.successor_node.predecessor_node = node.predecessor_node
 
-		else:
-			self.root = AVLNode(None, None)  # the tree is now empty
+			original_parent.size = original_parent.check_size()
+
 #####		# I didn't update successor and predecessor here (to delete later
-		cnt = self._deletion_fix(originalparent)
+
+		cnt = self._deletion_fix(original_parent)
 		return cnt
 
-	def delete_node_with_one_child (self,node):
-		originalparent = node.parent
+	def delete_node_with_one_child(self,node):
+		original_parent = node.parent
 		cnt = 0
-		if originalparent is not None:
-			if not node.left.is_real_node():  # there is a right son
-				node.right.parent = originalparent
-				originalparent.right = node.right  # created bypass
-			else:  # there is a left son
-				node.left.parent = originalparent
-				originalparent.left = node.left  # created bypass
+		if original_parent is not None:
+			if node.left.is_real_node():  # there is a left son
+				if original_parent.left is node:
+					original_parent.left = node.left
+					node.left.parent = original_parent
+				else:
+					original_parent.right = node.left
+					node.left.parent = original_parent
+			else:
+				if original_parent.left is node:
+					original_parent.left = node.right
+					node.right.parent = original_parent
+				else:
+					original_parent.right = node.right
+					node.right.parent = original_parent
 
 			if node.predecessor_node is not None:
 				node.predecessor_node.successor_node = node.successor_node
 			if node.successor_node is not None:
 				node.successor_node.predecessor_node = node.predecessor_node
-
+			original_parent.size = original_parent.check_size()
 		else:  # the node is the root with one child
 			if node.right.is_real_node():
 				node.successor_node.predecessor_node = node.predecessor_node
@@ -434,11 +447,12 @@ class AVLTree(object):
 			else:
 				node.predecessor_node.successor_node = node.successor_node
 				self.root = node.left
-
-		cnt = self._deletion_fix(originalparent)
+		if original_parent is not None:
+			original_parent.size = original_parent.check_size()
+		cnt = self._deletion_fix(original_parent)
 		return cnt
 
-	def delete_node_with_two_child(self, node):
+	def delete_node_with_two_children(self, node):
 		originalparent = node.parent
 		cnt = 0
 		nodesucc = node.successor_node
@@ -464,7 +478,7 @@ class AVLTree(object):
 		if node.successor_node is not None:
 			nodesucc.successor_node.predecessor_node = nodesucc
 
-		#replace its parent fild
+		# replace its parent field
 		if node.parent is None:  # in case we delete the root
 			nodesucc.parent = None
 			self.root = nodesucc
@@ -474,60 +488,9 @@ class AVLTree(object):
 				nodesucc.parent.left = nodesucc
 			else:
 				nodesucc.parent.right = nodesucc
+		nodesucc.size = nodesucc.check_size()
 		cnt = self._deletion_fix(originalparent) ##originalsucc
 		return cnt
-
-
-
-
-
-
-
-
-
-	#THE OLD DELETE WITH TWO CHILD:
-	""" 
-	def delete_node_with_two_child(self, node, originalparent, cnt):
-		nodesucc = node.successor_node
-		original_node_successor = nodesucc.parent
-
-		if nodesucc.parent.left is nodesucc:  # maybe not a good test
-			nodesuccisleftson = True
-		else:
-			nodesuccisleftson = False
-
-		if nodesucc.right is not None and nodesucc.right.is_real_node():
-			nodesucc.parent.right = nodesucc.right  # remove successor from the tree
-			nodesucc.right.parent = nodesucc.parent
-
-		if nodesuccisleftson:  # understanding if nodesucc will be left or right son
-			if originalparent is not None and originalparent.is_real_node():
-				originalparent.right = nodesucc  # left?
-			else:
-				self.root = nodesucc
-				self.root.parent = None  ##??
-
-		else:
-			if originalparent is not None and originalparent.is_real_node():
-				originalparent.right = nodesucc
-			else:
-				nodesucc.parent = None
-				nodesucc.left = self.root.left
-				nodesucc.right = nodesucc.successor_node
-				self.root = nodesucc
-
-		nodesucc.parent = originalparent  # replace node by successor
-		nodesucc.right = node.right
-		nodesucc.left = node.left
-		nodesucc.right.parent = nodesucc
-		nodesucc.left.parent = nodesucc
-		node.successor_node.predecessor_node = node.predecessor_node
-		node.predecessor_node.successor_node = node.successor_node
-		cnt = self._deletion_fix(original_node_successor)
-		return cnt
-
-	"""
-
 
 	""" Method that climbs to root and fixes AVL Tree after deletion
 	@pre: node already deleted from tree, called from delete method only
@@ -549,11 +512,13 @@ class AVLTree(object):
 			original_parent_height = parent.height
 			parent.height = parent.check_height()
 			parent.size = parent.check_size()
-			print("key",parent.key)
 			if original_parent_height != parent.height:  # counting height changes
 				cnt += 1
 			BF = parent.calculate_balance_factor()  # compute BF of parent
 			if abs(BF) < 2 and original_parent_height == parent.height:  # No rotation required
+				while parent is not None:
+					parent.size = parent.check_size()
+					parent = parent.parent
 				return cnt  # terminate - maybe better to return 0? because in this case there is no rotation
 			elif abs(BF) < 2 and original_parent_height != parent.height:  # high have been changed but BF is ok
 				parent = parent.parent  # go back to the while with the parent of the parent, until you find |BF|=2
@@ -596,7 +561,7 @@ class AVLTree(object):
 			return self.root.size
 		return 0
 
-	"""compute the rank of node in the dictionary
+	""" Computes the rank of node in the dictionary
 
 	@type node: AVLNode
 	@pre: node is in self
@@ -644,7 +609,7 @@ class AVLTree(object):
 		else:
 			return self.select_rec(node.right, k-r)
 
-	"""finds the node with the largest value in a specified range of keys
+	""" Finds node with largest value in a specified range of keys
 
 	@type a: int
 	@param a: the lower end of the range
@@ -652,7 +617,7 @@ class AVLTree(object):
 	@param b: the upper end of the range
 	@pre: a<b
 	@rtype: AVLNode
-	@returns: the node with maximal (lexicographically) value having a<=key<=b, or None if no such keys exist
+	@returns: AVLNode with maximal (lexicographically) value having a<=key<=b, or None if no such keys exist
 	@complexity: O(n)
 	"""
 	def max_range(self, a, b):
@@ -880,7 +845,6 @@ def trepr(t, bykey=False):
 
 	return conc(trepr(t.left, bykey), thistr, trepr(t.right, bykey))
 
-
 def conc(left, root, right):
 	"""Return a concatenation of textual represantations of
 	a root node, its left node, and its right node
@@ -914,7 +878,6 @@ def conc(left, root, right):
 
 	return result
 
-
 def leftspace(row):
 	"""helper for conc"""
 	# row is the first row of a left node
@@ -923,7 +886,6 @@ def leftspace(row):
 	while row[i] == " ":
 		i -= 1
 	return i + 1
-
 
 def rightspace(row):
 	"""helper for conc"""
@@ -934,180 +896,12 @@ def rightspace(row):
 		i += 1
 	return i
 
-def check_switches(lst):
-	counter = 0
-	for i in range(len(lst)):
-		for j in range(i+1, len(lst)):
-			if lst[i] > lst[j]:
-				counter += 1
 
-	return counter
-
-#########
-"""
 A = AVLTree()
-
-
-key = input("Enter a new key: ")
-while key != "-1":
-	A.insert(int(key),key)
-	printree(A.root)
-	key = input("Enter a new key: ")
-
-
-print(A.root.size)
-print(A.root.height)
-"""
-
-"""
-import random
-B = AVLTree()
-A = AVLTree()
-lst = []
-for i in range(1111*2):
-	lst.append(i)
-lst.reverse()
-
-counts = 0
-for key in lst:
-	counts += B.insert_to_finger_tree(key, key)
-print(2, len(lst))
-print("backwards: ")
-print("				balance ops: ", counts)
-print("				switches: ", check_switches(lst))
-
-
-random.shuffle(lst)
-counts = 0
-for key in lst:
-	counts += A.insert_to_finger_tree(key, key)
-
-print("random: ")
-print("				balance ops: ", counts)
-print("				switches: ", check_switches(lst))
-
-lst = []
-for i in range(1111*4):
-	lst.append(i)
-lst.reverse()
-
-counts = 0
-for key in lst:
-	counts += B.insert_to_finger_tree(key, key)
-print("2^2", len(lst))
-print("backwards: ")
-print("				balance ops: ", counts)
-print("				switches: ", check_switches(lst))
-
-
-random.shuffle(lst)
-counts = 0
-for key in lst:
-	counts += A.insert_to_finger_tree(key, key)
-
-print("random: ")
-print("				balance ops: ", counts)
-print("				switches: ", check_switches(lst))
-
-lst = []
-for i in range(1111*8):
-	lst.append(i)
-lst.reverse()
-
-counts = 0
-for key in lst:
-	counts += B.insert_to_finger_tree(key, key)
-print("2^3", len(lst))
-print("backwards: ")
-print("				balance ops: ", counts)
-print("				switches: ", check_switches(lst))
-
-
-random.shuffle(lst)
-counts = 0
-for key in lst:
-	counts += A.insert_to_finger_tree(key, key)
-
-print("random: ")
-print("				balance ops: ", counts)
-print("				switches: ", check_switches(lst))
-
-lst = []
-for i in range(1111*16):
-	lst.append(i)
-lst.reverse()
-
-counts = 0
-for key in lst:
-	counts += B.insert_to_finger_tree(key, key)
-print("2^4", len(lst))
-print("backwards: ")
-print("				balance ops: ", counts)
-print("				switches: ", check_switches(lst))
-
-
-random.shuffle(lst)
-counts = 0
-for key in lst:
-	counts += A.insert_to_finger_tree(key, key)
-
-print("random: ")
-print("				balance ops: ", counts)
-print("				switches: ", check_switches(lst))
-
-lst = []
-for i in range(1111*32):
-	lst.append(i)
-lst.reverse()
-
-counts = 0
-for key in lst:
-	counts += B.insert_to_finger_tree(key, key)
-print("2^5", len(lst))
-print("backwards: ")
-print("				balance ops: ", counts)
-print("				switches: ", check_switches(lst))
-
-
-random.shuffle(lst)
-counts = 0
-for key in lst:
-	counts += A.insert_to_finger_tree(key, key)
-
-print("random: ")
-print("				balance ops: ", counts)
-print("				switches: ", check_switches(lst))
-"""
-"""
-import random
-A = AVLTree()
-lst = [1,2,3,4,5,6,7,8,9]
-random.shuffle(lst)
-print(lst)
-for i in lst:
+for i in range(13):
 	A.insert(i,str(i))
 printree(A.root)
-i = int(input("Enter a number to search for: "))
-while i != -1:
-	node = A.search(i)
-	if node is not None and node.is_real_node():
-		succ = node.successor()
-		pred = node.predecessor()
-	if pred is None: print("pred expected", i-1,"received None")
-	else: print("pred expected",i-1,"received",pred.key)
-	if succ is None: print("succ expected", i+1,"received None")
-	else: print("succ expected",i+1,"received",succ.key)
-	i = int(input("Enter a number to search for: "))
-
-"""
-
-
-A = AVLTree()
-for i in range(0,5):
-	A.insert(i,str(i))
+A.delete(A.search(9))
 printree(A.root)
-print(A.size())
-A.delete(A.search(3))
-
-print(A.size())
+print(A.delete(A.search(11)))
 printree(A.root)
