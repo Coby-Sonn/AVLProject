@@ -164,11 +164,12 @@ class AVLTreeTester2022(unittest.TestCase):
         for i in range(6, 13):
             avl_tree.insert(i, str(i))
 
+
         avl_tree.delete(avl_tree.search(9))
         self.assertEqual(
             0,
             avl_tree.delete(avl_tree.search(11)),
-            "FAIL - after inserting 1 ,2 ,3 ,4 ,5 , 6 , 7 , 8 , 9 , 10 , 11 , 12 and then deleting 9 and 11, zero rotations should be done on second deletion",
+            "FAIL - after inserting 1 ,2 ,3 ,4 ,5 , 6 , 7 , 8 , 9 , 10 , 11 , 12 and then deleting 9 and 11, zero rotations should be done on second deletion!",
         )
         self.add_points(0.5)
 
@@ -232,7 +233,6 @@ class AVLTreeTester2022(unittest.TestCase):
         avl_tree = AVLTree()
         for i in range(10000):
             avl_tree.insert(i, "num" + str(i))
-
         # Check tree size after insertions
         self.assertEqual(
             avl_tree.size(),
@@ -242,7 +242,6 @@ class AVLTreeTester2022(unittest.TestCase):
 
         for i in range(10000):
             avl_tree.delete(avl_tree.get_root())
-
         self.assertEqual(
             avl_tree.size(), 0, "FAIL - after deleting all nodes size should be 0"
         )
@@ -519,7 +518,7 @@ class AVLTreeTester2022(unittest.TestCase):
             self.assertNotEqual(
                 T.search(i),
                 None,
-                "FAIL - search should return None iff str({}) is not in the tree".format(
+                "FAIL1 - search should return None iff str({}) is not in the tree".format(
                     i
                 ),
             )
@@ -527,7 +526,7 @@ class AVLTreeTester2022(unittest.TestCase):
             self.assertEqual(
                 T.search(i),
                 None,
-                "FAIL - search should return None iff str({}) is not in the tree".format(
+                "FAIL2 - search should return None iff str({}) is not in the tree".format(
                     i
                 ),
             )
