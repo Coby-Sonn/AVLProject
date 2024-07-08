@@ -372,88 +372,162 @@ class AVLTree(object):
 	"""
 
 	def delete(self, node):
-		originalparent = node.parent
-		cnt = 0
+
 		if (not (node.left.is_real_node())) and (not (node.right.is_real_node())):  # node is a leaf
-			if originalparent is not None:
-				if originalparent.left is node:
-					originalparent.left = AVLNode(None, None)
-					originalparent.left.parent = originalparent
-
-				elif originalparent.right is node:
-					originalparent.successor_node = originalparent.right.successor_node
-					originalparent.right = AVLNode(None, None)
-					originalparent.right.parent = originalparent
-
-				if node.predecessor_node is not None:
-					node.predecessor_node.successor_node = node.successor_node
-				if node.successor_node is not None:
-					node.successor_node.predecessor_node = node.predecessor_node
-
-			else:
-				self.root = AVLNode(None, None)  # the tree is now empty
-			# I didn't update successor and predecessor here
-			cnt = self._deletion_fix(originalparent)
-			return cnt
+			ans = self.delete_leaf(node)
+			return ans
 
 		elif (not (node.left.is_real_node())) ^ (not (node.right.is_real_node())):  # node has one child
-			if originalparent is not None:
-				if not node.left.is_real_node():  # there is a right son
-					node.right.parent = originalparent
-					originalparent.right = node.right  # created bypass
-				else:  # there is a left son
-					node.left.parent = originalparent
-					originalparent.left = node.left  # created bypass
+			ans = self.delete_node_with_one_child(node)
 
-				if node.predecessor_node is not None:
-					node.predecessor_node.successor_node = node.successor_node
-				if node.successor_node is not None:
-					node.successor_node.predecessor_node = node.predecessor_node
+		else:
+			ans = self.delete_node_with_two_child(node)
 
-			else:  # the node is the root with one child
-				if node.right.is_real_node():
-					node.successor_node.predecessor_node = node.predecessor_node
-					self.root = node.right
+		return ans
 
-				else:
-					node.predecessor_node.successor_node = node.successor_node
-					self.root = node.left
 
-			cnt = self._deletion_fix(originalparent)
-			return cnt
+	def delete_leaf(self,node):
+		originalparent = node.parent
+		cnt = 0
+		if originalparent is not None:
+			if originalparent.left is node:
+				originalparent.left = AVLNode(None, None)
+				originalparent.left.parent = originalparent
 
-		else:  # node has 2 children (therefore its successor has no left child)
-			nodesucc = node.successor_node
-			original_node_successor = nodesucc.parent
-			if nodesucc.parent.left is nodesucc:
-				nodesuccisleftson = True
+			elif originalparent.right is node:
+				originalparent.successor_node = originalparent.right.successor_node
+				originalparent.right = AVLNode(None, None)
+				originalparent.right.parent = originalparent
+
+			if node.predecessor_node is not None:
+				node.predecessor_node.successor_node = node.successor_node
+			if node.successor_node is not None:
+				node.successor_node.predecessor_node = node.predecessor_node
+
+		else:
+			self.root = AVLNode(None, None)  # the tree is now empty
+#####		# I didn't update successor and predecessor here (to delete later
+		cnt = self._deletion_fix(originalparent)
+		return cnt
+
+	def delete_node_with_one_child (self,node):
+		originalparent = node.parent
+		cnt = 0
+		if originalparent is not None:
+			if not node.left.is_real_node():  # there is a right son
+				node.right.parent = originalparent
+				originalparent.right = node.right  # created bypass
+			else:  # there is a left son
+				node.left.parent = originalparent
+				originalparent.left = node.left  # created bypass
+
+			if node.predecessor_node is not None:
+				node.predecessor_node.successor_node = node.successor_node
+			if node.successor_node is not None:
+				node.successor_node.predecessor_node = node.predecessor_node
+
+		else:  # the node is the root with one child
+			if node.right.is_real_node():
+				node.successor_node.predecessor_node = node.predecessor_node
+				self.root = node.right
+
 			else:
-				nodesuccisleftson = False
-			if nodesucc.right is not None and nodesucc.right.is_real_node():
-				nodesucc.parent.right = nodesucc.right  # remove successor from the tree
-				nodesucc.right.parent = nodesucc.parent
-			if nodesuccisleftson:  # understanding if nodesucc will be left or right son
-				if originalparent is not None:
-					originalparent.left = nodesucc
-				else:
-					self.root = nodesucc
-					self.root.parent = None
+				node.predecessor_node.successor_node = node.successor_node
+				self.root = node.left
 
+		cnt = self._deletion_fix(originalparent)
+		return cnt
+
+	def delete_node_with_two_child(self, node):
+		originalparent = node.parent
+		cnt = 0
+		nodesucc = node.successor_node
+		original_node_successor = nodesucc.parent
+		# when delete node with 2 children, its successor has no left child
+		# remove successor from the tree: the successor is a leaf or has one right child
+		if nodesucc.height == 0:
+			self.delete_leaf(nodesucc)
+		else:
+			self.delete_node_with_one_child(nodesucc)
+		# replace node by successor: replace its children
+		nodesucc.left = node.left
+		nodesucc.right = node.right
+		nodesucc.left.parent = nodesucc
+		nodesucc.right.parent = nodesucc
+		#replace its succ field
+
+		nodesucc.predecessor_node = node.predecessor_node
+		nodesucc.successor_node = node.successor_node
+
+		if node.predecessor_node is not None:
+			nodesucc.predecessor_node.successor_node = nodesucc
+		if node.successor_node is not None:
+			nodesucc.successor_node.predecessor_node = nodesucc
+
+		#replace its parent fild
+		if node.parent is None:  # in case we delete the root
+			nodesucc.parent = None
+			self.root = nodesucc
+		else:
+			nodesucc.parent = node.parent
+			if nodesucc.parent.left is node:
+				nodesucc.parent.left = nodesucc
 			else:
-				if originalparent is not None:
-					originalparent.right = nodesucc
-				else:
-					self.root = nodesucc
-					self.root.parent = None
-			nodesucc.parent = originalparent  # replace node by successor
-			nodesucc.right = node.right
-			nodesucc.left = node.left
-			nodesucc.right.parent = nodesucc
-			nodesucc.left.parent = nodesucc
-			node.successor_node.predecessor_node = node.predecessor_node
-			node.predecessor_node.successor_node = node.successor_node
-			cnt = self._deletion_fix(original_node_successor)
-			return cnt
+				nodesucc.parent.right = nodesucc
+		cnt = self._deletion_fix(originalparent) ##originalsucc
+		return cnt
+
+
+
+
+
+
+
+
+
+	#THE OLD DELETE WITH TWO CHILD:
+	""" 
+	def delete_node_with_two_child(self, node, originalparent, cnt):
+		nodesucc = node.successor_node
+		original_node_successor = nodesucc.parent
+
+		if nodesucc.parent.left is nodesucc:  # maybe not a good test
+			nodesuccisleftson = True
+		else:
+			nodesuccisleftson = False
+
+		if nodesucc.right is not None and nodesucc.right.is_real_node():
+			nodesucc.parent.right = nodesucc.right  # remove successor from the tree
+			nodesucc.right.parent = nodesucc.parent
+
+		if nodesuccisleftson:  # understanding if nodesucc will be left or right son
+			if originalparent is not None and originalparent.is_real_node():
+				originalparent.right = nodesucc  # left?
+			else:
+				self.root = nodesucc
+				self.root.parent = None  ##??
+
+		else:
+			if originalparent is not None and originalparent.is_real_node():
+				originalparent.right = nodesucc
+			else:
+				nodesucc.parent = None
+				nodesucc.left = self.root.left
+				nodesucc.right = nodesucc.successor_node
+				self.root = nodesucc
+
+		nodesucc.parent = originalparent  # replace node by successor
+		nodesucc.right = node.right
+		nodesucc.left = node.left
+		nodesucc.right.parent = nodesucc
+		nodesucc.left.parent = nodesucc
+		node.successor_node.predecessor_node = node.predecessor_node
+		node.predecessor_node.successor_node = node.successor_node
+		cnt = self._deletion_fix(original_node_successor)
+		return cnt
+
+	"""
+
 
 	""" Method that climbs to root and fixes AVL Tree after deletion
 	@pre: node already deleted from tree, called from delete method only
@@ -463,11 +537,19 @@ class AVLTree(object):
 	def _deletion_fix(self, node):
 		cnt = 0
 		parent = node
+		if parent is None:
+			originalheight = self.root.height
+			self.root.height = self.root.check_height()
+			self.root.size = self.root.check_size()
+			if originalheight != self.root.height:
+				return 1
+			return 0
 
 		while parent is not None:
 			original_parent_height = parent.height
 			parent.height = parent.check_height()
 			parent.size = parent.check_size()
+			print("key",parent.key)
 			if original_parent_height != parent.height:  # counting height changes
 				cnt += 1
 			BF = parent.calculate_balance_factor()  # compute BF of parent
@@ -1021,10 +1103,11 @@ while i != -1:
 
 
 A = AVLTree()
-for i in range(0,3):
+for i in range(0,5):
 	A.insert(i,str(i))
 printree(A.root)
-A.delete(A.root)
+print(A.size())
+A.delete(A.search(3))
 
 print(A.size())
 printree(A.root)
