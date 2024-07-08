@@ -146,21 +146,6 @@ class AVLNode(object):
 		self.right = AVLNode(None, None)
 		self.right.parent = self
 
-		## DELETE BELOW FUNCTIONS ##
-	def get_value(self):
-		return self.value
-	def get_left(self):
-		return self.left
-	def get_right(self):
-		return self.right
-	def get_height(self):
-		return self.height
-	def get_parent(self):
-		return self.parent
-	def get_key(self):
-		return self.key
-
-
 
 """
 A class implementing an AVL tree.
@@ -197,79 +182,6 @@ class AVLTree(object):
 		if node.key == key:
 			return node
 		return None
-
-	# DELETE INSERT_TO_FINGER_TREE FUNCTION #
-	def insert_to_finger_tree(self, key, val):
-		num_of_operations = 0
-		counter = 0
-
-		curr_node = self.max_node
-		parent_node = curr_node.parent
-
-		if self.size() == 0:
-			self.root.key = key
-			self.root.value = val
-			self.root.height += 1
-			self.root.size += 1
-			self.root.add_virtual_sons()
-			return num_of_operations + counter
-
-		if key > curr_node.key:
-			new_node = AVLNode(key, val)
-			new_node.size += 1
-			new_node.height += 1
-			curr_node.height += 1
-			num_of_operations += 1
-			curr_node.size += 1
-			self.max_node.right = new_node
-			new_node.parent = self.max_node
-			new_node.add_virtual_sons()
-			self.max_node = new_node
-			counter += 1
-			if new_node.parent is None or not new_node.parent.is_real_node():
-				self.root = new_node
-				return num_of_operations, counter
-			num_of_operations += self._insertion_fix(new_node.parent)
-			return num_of_operations + counter
-
-		if parent_node is not None:
-			while key < curr_node.key and key < parent_node.key:
-				curr_node = parent_node
-				parent_node = curr_node.parent
-				counter += 1
-				if parent_node is None or not parent_node.is_real_node():
-					break
-
-		# binary search and insert from parent_node
-
-		node_x = parent_node if parent_node else curr_node
-		while node_x.is_real_node():
-			if key < node_x.key:
-				if node_x.left is None or not node_x.left.is_real_node():
-					new_node = AVLNode(key, val)
-					new_node.size += 1
-					new_node.height += 1
-					node_x.left = new_node
-					new_node.parent = node_x
-					new_node.add_virtual_sons()
-					num_of_operations += self._insertion_fix(new_node.parent)
-					return num_of_operations + counter + 1
-				node_x = node_x.left
-			else:
-				if node_x.right is None or not node_x.right.is_real_node():
-					new_node = AVLNode(key, val)
-					new_node.size += 1
-					new_node.height += 1
-					node_x.right = new_node
-					new_node.parent = node_x
-					new_node.add_virtual_sons()
-					num_of_operations += self._insertion_fix(new_node.parent)
-					return num_of_operations + counter + 1
-				node_x = node_x.right
-			counter += 1
-
-		return num_of_operations + counter
-	# DELETE ABOVE FUNCTION #
 
 	""" Inserts a new node into the dictionary with corresponding key and value
 	@type key: int
@@ -386,6 +298,15 @@ class AVLTree(object):
 
 		return ans
 
+	""" Deletes a leaf
+
+		@type node: AVLNode
+		@pre: node is a real pointer to a node in self
+		@rtype: int
+		@returns: the number of rebalancing operation due to AVL rebalancing
+		@complexity: O(logn)
+		"""
+
 	def delete_leaf(self, node):
 		if self.root is node and self.size() == 1:
 			self.root = AVLNode(None,None)
@@ -410,10 +331,17 @@ class AVLTree(object):
 
 			original_parent.size = original_parent.check_size()
 
-#####		# I didn't update successor and predecessor here (to delete later
-
 		cnt = self._deletion_fix(original_parent)
 		return cnt
+
+	""" Deletes a node with only one child
+
+		@type node: AVLNode
+		@pre: node is a real pointer to a node in self
+		@rtype: int
+		@returns: the number of rebalancing operation due to AVL rebalancing
+		@complexity: O(logn)
+		"""
 
 	def delete_node_with_one_child(self,node):
 		original_parent = node.parent
@@ -452,25 +380,30 @@ class AVLTree(object):
 		cnt = self._deletion_fix(original_parent)
 		return cnt
 
-	def delete_node_with_two_children(self, node):
+	""" Deletes a node with two children
+
+		@type node: AVLNode
+		@pre: node is a real pointer to a node in self
+		@rtype: int
+		@returns: the number of rebalancing operation due to AVL rebalancing
+		@complexity: O(logn)
+		"""
+	def delete_node_with_two_children(self, node): # when we delete node with 2 children, its successor has no left child
 		originalparent = node.parent
 		cnt = 0
 		nodesucc = node.successor_node
 		original_node_successor = nodesucc.parent
-		# when delete node with 2 children, its successor has no left child
-		# remove successor from the tree: the successor is a leaf or has one right child
-		if nodesucc.height == 0:
+		if nodesucc.height == 0: # remove successor from the tree: the successor is a leaf or has one right child
 			self.delete_leaf(nodesucc)
 		else:
 			self.delete_node_with_one_child(nodesucc)
-		# replace node by successor: replace its children
-		nodesucc.left = node.left
+
+		nodesucc.left = node.left # replacing node by successor: replace its children
 		nodesucc.right = node.right
 		nodesucc.left.parent = nodesucc
 		nodesucc.right.parent = nodesucc
-		#replace its succ field
 
-		nodesucc.predecessor_node = node.predecessor_node
+		nodesucc.predecessor_node = node.predecessor_node #replace its succ field
 		nodesucc.successor_node = node.successor_node
 
 		if node.predecessor_node is not None:
@@ -478,7 +411,7 @@ class AVLTree(object):
 		if node.successor_node is not None:
 			nodesucc.successor_node.predecessor_node = nodesucc
 
-		# replace its parent field
+		# replace its parent field:
 		if node.parent is None:  # in case we delete the root
 			nodesucc.parent = None
 			self.root = nodesucc
@@ -489,7 +422,7 @@ class AVLTree(object):
 			else:
 				nodesucc.parent.right = nodesucc
 		nodesucc.size = nodesucc.check_size()
-		cnt = self._deletion_fix(originalparent) ##originalsucc
+		cnt = self._deletion_fix(originalparent)
 		return cnt
 
 	""" Method that climbs to root and fixes AVL Tree after deletion
@@ -898,10 +831,7 @@ def rightspace(row):
 
 
 A = AVLTree()
-for i in range(13):
+for i in range(4):
 	A.insert(i,str(i))
 printree(A.root)
-A.delete(A.search(9))
-printree(A.root)
-print(A.delete(A.search(11)))
-printree(A.root)
+A.delete(A.root)
