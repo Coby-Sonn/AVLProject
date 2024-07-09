@@ -310,7 +310,7 @@ class AVLTree(object):
 	def delete_leaf(self, node):
 		if self.root is node and self.size() == 1:
 			self.root = AVLNode(None,None)
-			self.root.size = 1
+			self.root.size = 0
 			self.root.height = 0
 			return 0
 		original_parent = node.parent
