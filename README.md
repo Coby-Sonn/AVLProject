@@ -4,4 +4,4 @@ This project implements an AVL tree data structure in Python. The AVL tree is a 
 
 The attached code was built with a fellow student as part of our studies during Tel Aviv University's Data Structures course 🎓
 
-hile working on this project, we focused on writing clean, clear, and efficient code, alongside implementing correct and efficient algorithms to ensure the best possible runtime for the multiple methods within the implementation. 🚀💻
+While working on this project, we focused on writing clean, clear, and efficient code, alongside implementing correct and efficient algorithms to ensure the best possible runtime for the multiple methods within the implementation. 🚀💻
