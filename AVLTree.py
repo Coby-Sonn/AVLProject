@@ -1,11 +1,3 @@
-#username - nogaarian
-#id1      - 206899163
-#name1    - noga arian
-#username - cobys
-#id2      - 318134186
-#name2    - Coby Sonnenberg
-
-
 """A class representing a node in an AVL tree"""
 
 class AVLNode(object):
