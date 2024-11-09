@@ -3,7 +3,7 @@
 class AVLNode(object):
 
 
-	"""Constructor, you are allowed to add more fields.
+	""" Constructor
 
 	@type key: int or None
 	@param key: key of your node
@@ -128,7 +128,7 @@ class AVLNode(object):
 			node = node.right
 		return node
 
-	""" Function that creates and adds two virtual sons for given node
+	""" Method that creates and adds two virtual sons for given node
 	@param self: leaf node with no sons 
 	@return: None
 	@complexity: O(1)
@@ -147,7 +147,7 @@ A class implementing an AVL tree.
 class AVLTree(object):
 
 	"""
-	Constructor, you are allowed to add more fields.
+	Constructor
 	@type root: AVLNode Object or None
 	@param root: Node to be root of AVLTree
 	@complexity: O(1)
